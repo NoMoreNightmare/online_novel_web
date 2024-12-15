@@ -27,8 +27,8 @@ import java.util.Date;
 /**
  * @author 11797
  */
-@Controller
-@RequestMapping("file")
+//@Controller
+//@RequestMapping("file")
 @Slf4j
 @RequiredArgsConstructor
 public class FileController {
