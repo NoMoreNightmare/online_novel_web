@@ -72,7 +72,7 @@ public class JwtTokenUtil {
         UserDetails userDetail;
         try {
             Claims claims = getClaimsFromToken(token);
-             userDetail = new ObjectMapper().readValue(claims.getSubject(),UserDetails.class);
+            userDetail = new ObjectMapper().readValue(claims.getSubject(),UserDetails.class);
         } catch (Exception e) {
             log.error(e.getMessage(),e);
             userDetail = null;

@@ -227,4 +227,7 @@ public interface UserMapper {
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ResultType(value = Integer.class)
     Integer selectStatistic(SelectStatementProvider selectStatement);
+
+    @Select("select count(*) from user where username = #{username}")
+    Integer selectExistUserNumber(@Param("username") String username);
 }

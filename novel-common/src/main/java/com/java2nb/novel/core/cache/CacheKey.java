@@ -69,4 +69,9 @@ public interface CacheKey {
      * 测试爬虫规则缓存
      */
     String BOOK_TEST_PARSE = "testParse";
+
+    /**
+     * redisson的生成id的分布式锁
+     */
+    String REDISSON_ID_GENERATOR = "redissonIdGenerator";
 }

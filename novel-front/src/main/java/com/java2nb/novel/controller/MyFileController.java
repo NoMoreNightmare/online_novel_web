@@ -1,6 +1,7 @@
 package com.java2nb.novel.controller;
 
 import com.java2nb.novel.core.cache.CacheService;
+import com.java2nb.novel.core.utils.IpUtil;
 import com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -9,19 +10,24 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.Random;
 import java.util.UUID;
 
 import static com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil.VERIFICATION_CODE;
 
 
+/**
+ * @author 10253
+ */
 @Controller
 @RequestMapping("file")
 @Slf4j
 public class MyFileController {
-    @Autowired
+    @Resource
     private CacheService cacheService;
 
 
@@ -36,6 +42,6 @@ public class MyFileController {
         String code = randomValidateCodeUtil.genRandCodeImage(response.getOutputStream());
 
         UUID uuid = UUID.randomUUID();
-        cacheService.set(VERIFICATION_CODE + ":" + uuid, code);
+        cacheService.set(VERIFICATION_CODE + ":" + IpUtil.getRealIp(request), code, new Random().nextInt(60));
     }
 }
