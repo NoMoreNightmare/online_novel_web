@@ -10,4 +10,8 @@ import com.java2nb.novel.core.result.Result;
  */
 public interface MyUserService {
     public Result<?> register(User user, String velCode, String ip);
+
+    public Result<?> login(User user);
+
+    Result<?> refreshToken(String token);
 }

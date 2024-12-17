@@ -160,10 +160,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> listClickRank() {
-        List<Book> result = (List<Book>) cacheService.getObject(CacheKey.INDEX_CLICK_BANK_BOOK_KEY);
+        List<Book> result = (List<Book>) cacheService.getObject(CacheKey.INDEX_CLICK_RANK_BOOK_KEY);
         if (result == null || result.size() == 0) {
             result = listRank((byte) 0, 10);
-            cacheService.setObject(CacheKey.INDEX_CLICK_BANK_BOOK_KEY, result, 5000);
+            cacheService.setObject(CacheKey.INDEX_CLICK_RANK_BOOK_KEY, result, 5000);
         }
         return result;
     }

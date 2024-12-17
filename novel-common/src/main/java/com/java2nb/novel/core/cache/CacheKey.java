@@ -18,7 +18,7 @@ public interface CacheKey {
     /**
      * 首页点击榜单
      * */
-    String INDEX_CLICK_BANK_BOOK_KEY = "indexClickBankBookKey";
+    String INDEX_CLICK_RANK_BOOK_KEY = "indexClickRankBookKey";
 
     /**
      * 首页友情链接

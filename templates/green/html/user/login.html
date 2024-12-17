@@ -84,6 +84,8 @@
                         localStorage.setItem("autoLogin","1");
                     }else {
                         $.cookie('Authorization', data.data.token,{ path: '/'  });
+                        alert(data.data.data.token)
+
                         localStorage.setItem("autoLogin","0");
                     }
                     var orginUrl = getSearchString("originUrl");

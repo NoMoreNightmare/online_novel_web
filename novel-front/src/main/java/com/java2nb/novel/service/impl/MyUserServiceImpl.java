@@ -14,19 +14,22 @@ import com.java2nb.novel.core.utils.JwtTokenUtil;
 import com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil;
 import com.java2nb.novel.core.utils.SnowflakeIdGenerator;
 import com.java2nb.novel.entity.User;
+import com.java2nb.novel.mapper.UserDynamicSqlSupport;
 import com.java2nb.novel.mapper.UserMapper;
 import com.java2nb.novel.service.MyUserService;
 import com.java2nb.novel.service.UserService;
 import io.github.xxyopen.web.exception.BusinessException;
+import org.mybatis.dynamic.sql.render.RenderingStrategy;
+import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+import static com.java2nb.novel.mapper.UserDynamicSqlSupport.*;
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
 
 @Service
@@ -66,7 +69,7 @@ public class MyUserServiceImpl implements MyUserService {
         Date currentTime = new Date();
         user.setCreateTime(currentTime);
         user.setUpdateTime(currentTime);
-        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(10)));
+        user.setPassword(BCrypt.hashpw(user.getPassword()));
 
         userMapper.insertSelective(user);
 
@@ -79,6 +82,58 @@ public class MyUserServiceImpl implements MyUserService {
         data.put("token", jwtTokenUtil.generateToken(userDetails));
 
         return Result.ok(data);
+
+    }
+
+    @Override
+    public Result<?> login(User user) {
+        SelectStatementProvider select = select(id, username, nickName, password)
+                .from(UserDynamicSqlSupport.user)
+                .where(username, isEqualTo(user.getUsername()))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        Optional<User> optionalUser = userMapper.selectOne(select);
+
+
+
+        if(!optionalUser.isPresent()){
+            return Result.customError(LoginAndRegisterConstant.USERNAME_PASS_ERROR_MSG, LoginAndRegisterConstant.USERNAME_PASS_ERROR);
+        }
+
+        User userInfo = optionalUser.get();
+
+        if(!BCrypt.checkpw(user.getPassword(), userInfo.getPassword())){
+            return Result.customError(LoginAndRegisterConstant.USERNAME_PASS_ERROR_MSG, LoginAndRegisterConstant.USERNAME_PASS_ERROR);
+        }
+
+        UserDetails userDetails = new UserDetails();
+        userDetails.setId(userInfo.getId());
+        userDetails.setUsername(userInfo.getUsername());
+        userDetails.setNickName(userInfo.getNickName());
+
+        String token = jwtTokenUtil.generateToken(userDetails);
+
+        Map<String, Object> data = new HashMap<>(1);
+        data.put("token", token);
+
+        return Result.ok(data);
+    }
+
+    @Override
+    public Result<?> refreshToken(String token) {
+        if(token != null && jwtTokenUtil.canRefresh(token)){
+            String refreshToken = jwtTokenUtil.refreshToken(token);
+            UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(token);
+            Map<String, Object> data = new HashMap<>(2);
+            data.put("token", refreshToken);
+            data.put("nickName", userDetails.getNickName());
+            data.put("username", userDetails.getUsername());
+            return Result.ok(data);
+        }else{
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+
 
     }
 
