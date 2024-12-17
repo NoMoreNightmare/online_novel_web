@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * @author 11797
  */
-@RequestMapping("book")
+@RequestMapping("mybook")
 @RestController
 @Slf4j
 @RequiredArgsConstructor
