@@ -2,6 +2,7 @@ package com.java2nb.novel.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
 import cn.hutool.crypto.digest.MD5;
+import cn.hutool.log.Log;
 import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.cache.impl.RedisServiceImpl;
@@ -16,6 +17,7 @@ import com.java2nb.novel.entity.User;
 import com.java2nb.novel.mapper.UserMapper;
 import com.java2nb.novel.service.MyUserService;
 import com.java2nb.novel.service.UserService;
+import io.github.xxyopen.web.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +52,7 @@ public class MyUserServiceImpl implements MyUserService {
 
         int existUsers = userMapper.selectExistUserNumber(user.getUsername());
         if(existUsers > 0){
+//            throw new RuntimeException(LoginAndRegisterConstant.USERNAME_EXIST_MSG);
             return Result.customError(LoginAndRegisterConstant.USERNAME_EXIST_MSG, LoginAndRegisterConstant.USERNAME_EXIST);
         }
 

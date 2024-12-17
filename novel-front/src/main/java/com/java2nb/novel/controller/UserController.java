@@ -27,7 +27,7 @@ import java.util.Map;
  * @author 11797
  */
 @RestController
-@RequestMapping("user")
+@RequestMapping("myuser")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController extends BaseController {

@@ -41,7 +41,6 @@ public class MyFileController {
         MyRandomVerificationCodeUtil randomValidateCodeUtil = new MyRandomVerificationCodeUtil();
         String code = randomValidateCodeUtil.genRandCodeImage(response.getOutputStream());
 
-        UUID uuid = UUID.randomUUID();
-        cacheService.set(VERIFICATION_CODE + ":" + IpUtil.getRealIp(request), code, new Random().nextInt(60));
+        cacheService.set(VERIFICATION_CODE + ":" + IpUtil.getRealIp(request), code, 30);
     }
 }
