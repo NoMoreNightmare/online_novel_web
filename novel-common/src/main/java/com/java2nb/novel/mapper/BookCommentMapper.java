@@ -200,4 +200,6 @@ public interface BookCommentMapper {
         );
     }
 
+//    @Select("select count(book_comment.id) from book_comment where book_id = #{bookId}")
+//    long count(@Param("bookId") long bookId);
 }

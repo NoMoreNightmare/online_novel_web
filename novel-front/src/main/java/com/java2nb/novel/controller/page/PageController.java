@@ -163,7 +163,7 @@ public class PageController extends BaseController {
      * 详情页
      */
     @SneakyThrows
-    @RequestMapping("/book/{bookId}.html")
+//    @RequestMapping("/book/{bookId}.html")
     public String bookDetail(@PathVariable("bookId") Long bookId, Model model) {
         //加载小说基本信息线程
         CompletableFuture<Book> bookCompletableFuture = CompletableFuture.supplyAsync(() -> {

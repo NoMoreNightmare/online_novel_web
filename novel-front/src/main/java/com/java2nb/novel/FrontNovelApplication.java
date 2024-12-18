@@ -28,6 +28,7 @@ import java.net.InetAddress;
 @Slf4j
 public class FrontNovelApplication {
 
+    //TODO 尝试能否多创建点VO对象来缩减所需要传输的数据量（e.g., 只需要bookid和bookname，那么创建一个只包含这两个属性的类，而不用另一个对象更大的类）
     public static void main(String[] args) {
         SpringApplication.run(FrontNovelApplication.class);
     }
