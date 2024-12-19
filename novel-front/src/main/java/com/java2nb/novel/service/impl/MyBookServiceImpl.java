@@ -46,6 +46,8 @@ public class MyBookServiceImpl implements MyBookService {
     private MyBookService myBookService;
     @Resource(name = "db")
     private BookContentService bookContentService;
+    @Autowired
+    private BookContentMapper bookContentMapper;
 
     @Override
     public Result<?> listClickRank() {
@@ -238,6 +240,51 @@ public class MyBookServiceImpl implements MyBookService {
         pageBean.setTotal(total);
 
         return Result.ok(pageBean);
+    }
+
+    @Override
+    public BookIndex queryAboutCurrentIndex(long bookId, long bookIndexId) {
+        SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.indexName,
+                BookIndexDynamicSqlSupport.indexNum, BookIndexDynamicSqlSupport.isVip, BookIndexDynamicSqlSupport.bookPrice)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .and(BookIndexDynamicSqlSupport.id, isEqualTo(bookIndexId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        Optional<BookIndex> bookIndex = bookIndexMapper.selectOne(select);
+        if(bookIndex.isPresent()){
+            return bookIndex.get();
+        }
+        return null;
+    }
+
+    @Override
+    public Long queryBookIndexIdByIndexNum(Long bookId, int IndexNum) {
+        SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .and(BookIndexDynamicSqlSupport.indexNum, isEqualTo(IndexNum))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        Optional<BookIndex> bookIndex = bookIndexMapper.selectOne(select);
+        if(bookIndex.isPresent()){
+            return bookIndex.get().getId();
+        }
+        return null;
+    }
+
+    @Override
+    public BookContent queryBookContent(long bookId, long bookIndexId) {
+        //TODO 应该根据bookId和bookIndexId来查询的，但这里只用了bookIndexId，看看能不能改数据库表的DDL
+        SelectStatementProvider select = select(BookContentDynamicSqlSupport.content)
+                .from(BookContentDynamicSqlSupport.bookContent)
+                .where(BookContentDynamicSqlSupport.indexId, isEqualTo(bookIndexId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        Optional<BookContent> bookContent = bookContentMapper.selectOne(select);
+        return bookContent.orElse(null);
+
     }
 
     private Date getTimeOneMonthAgo(){

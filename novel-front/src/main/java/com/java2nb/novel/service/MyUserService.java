@@ -17,4 +17,6 @@ public interface MyUserService {
     Result<?> queryIsInShelf(Long bookId, Long userId);
 
     Result<?> addToBookShelf(Long bookId, long preContentId, Long userId);
+
+    long queryUserBuyRecord(long userId, long bookIndexId);
 }

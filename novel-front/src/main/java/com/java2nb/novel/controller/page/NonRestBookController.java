@@ -1,10 +1,18 @@
 package com.java2nb.novel.controller.page;
 
+import com.java2nb.novel.core.bean.UserDetails;
+import com.java2nb.novel.core.result.LoginAndRegisterConstant;
+import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.core.utils.CookieUtil;
+import com.java2nb.novel.core.utils.JwtTokenUtil;
 import com.java2nb.novel.core.utils.ThreadLocalUtil;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookComment;
+import com.java2nb.novel.entity.BookContent;
+import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.service.MyUserService;
 import com.java2nb.novel.vo.BookCommentVO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 
@@ -24,6 +33,10 @@ import java.util.List;
 public class NonRestBookController {
     @Resource
     private MyBookService bookService;
+    @Resource
+    private JwtTokenUtil jwtTokenUtil;
+    @Resource
+    private MyUserService myUserService;
 
     @SneakyThrows
     @RequestMapping("{id}.html")
@@ -46,6 +59,58 @@ public class NonRestBookController {
         model.addAttribute("firstBookIndexId", chapterId);
 
         return "book/book_detail";
+
+    }
+
+    @GetMapping("{bookId}/{bookIndexId}.html")
+    public String bookContent(@PathVariable("bookId") long bookId, @PathVariable("bookIndexId") long bookIndexId, Model model,
+                              HttpServletRequest request) {
+        //书的相关信息
+        Book book = bookService.queryBook(bookId);
+        //书的目录信息
+        BookIndex bookIndex = bookService.queryAboutCurrentIndex(bookId, bookIndexId);
+        Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
+        Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
+        //书的章节目录内容
+        BookContent bookContent = bookService.queryBookContent(bookId, bookIndexId);
+
+        model.addAttribute("book", book);
+        model.addAttribute("bookIndex", bookIndex);
+        model.addAttribute("nextBookIndexId", nextChapterId);
+        model.addAttribute("preBookIndexId", preChapterId);
+        model.addAttribute("bookContent", bookContent);
+
+        //判断是否需要购买
+        boolean needBuy = false;
+        //1、判断当前章节是否是vip章节
+        Byte isVip = bookIndex.getIsVip();
+        if(isVip == null || isVip == 0){
+            //不是vip章节
+            needBuy = false;
+        }else{
+            //2、是否登录，未登录一定不能看vip章节
+            String token = CookieUtil.getCookie(request, "Authorization");
+            if(token == null) {
+                token = request.getHeader("Authorization");
+            }
+
+            if(token != null && jwtTokenUtil.canRefresh(token)) {
+                UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(token);
+                //3、已登录，则查看是否购买了本书当前章节的vip，未购买则不能看
+                long userId = userDetails.getId();
+                long records = myUserService.queryUserBuyRecord(userId, bookIndexId);
+                //4、可以看
+                needBuy = (records == 0);
+
+            }else{
+                needBuy = true;
+            }
+        }
+
+        model.addAttribute("needBuy", needBuy);
+
+
+        return ThreadLocalUtil.getTemplateDir() + "book/book_content";
 
     }
 }

@@ -12,10 +12,7 @@ import com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil;
 import com.java2nb.novel.core.utils.SnowflakeIdGenerator;
 import com.java2nb.novel.entity.User;
 import com.java2nb.novel.entity.UserBookshelf;
-import com.java2nb.novel.mapper.UserBookshelfDynamicSqlSupport;
-import com.java2nb.novel.mapper.UserBookshelfMapper;
-import com.java2nb.novel.mapper.UserDynamicSqlSupport;
-import com.java2nb.novel.mapper.UserMapper;
+import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.MyUserService;
 import org.mybatis.dynamic.sql.insert.render.BatchInsert;
 import org.mybatis.dynamic.sql.insert.render.InsertStatementProvider;
@@ -46,6 +43,8 @@ public class MyUserServiceImpl implements MyUserService {
     SnowflakeIdGenerator idGenerator;
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private UserBuyRecordMapper userBuyRecordMapper;
 
 
     @Override
@@ -176,6 +175,18 @@ public class MyUserServiceImpl implements MyUserService {
 
         return Result.ok();
 
+    }
+
+    @Override
+    public long queryUserBuyRecord(long userId, long bookIndexId) {
+        SelectStatementProvider select = select(count(UserBuyRecordDynamicSqlSupport.id))
+                .from(UserBuyRecordDynamicSqlSupport.userBuyRecord)
+                .where(UserBuyRecordDynamicSqlSupport.userId, isEqualTo(userId))
+                .and(UserBuyRecordDynamicSqlSupport.bookIndexId, isEqualTo(bookIndexId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        return userBuyRecordMapper.count(select);
     }
 
 

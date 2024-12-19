@@ -222,7 +222,7 @@ public class PageController extends BaseController {
      * 内容页
      */
     @SneakyThrows
-    @RequestMapping("/book/{bookId}/{bookIndexId}.html")
+//    @RequestMapping("/book/{bookId}/{bookIndexId}.html")
     public String bookContent(@PathVariable("bookId") Long bookId, @PathVariable("bookIndexId") Long bookIndexId,
         HttpServletRequest request, Model model) {
         //加载小说基本信息线程

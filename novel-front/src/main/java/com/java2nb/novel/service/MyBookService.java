@@ -3,6 +3,8 @@ package com.java2nb.novel.service;
 import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.entity.Book;
+import com.java2nb.novel.entity.BookContent;
+import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.vo.BookCommentVO;
 
 import java.util.List;
@@ -31,4 +33,11 @@ public interface MyBookService {
     Result<?> addBookComment(Long bookId, String commentContent, Long userId);
 
     Result<?> listCommentByPage(Long bookId, Long curr, Long limit);
+
+    BookIndex queryAboutCurrentIndex(long bookId, long bookIndexId);
+
+    Long queryBookIndexIdByIndexNum(Long bookId, int IndexNum);
+
+    BookContent queryBookContent(long bookId, long bookIndexId);
+
 }
