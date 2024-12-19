@@ -1,13 +1,17 @@
 package com.java2nb.novel.controller;
 
+import com.java2nb.novel.core.bean.UserDetails;
+import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.core.utils.CookieUtil;
+import com.java2nb.novel.core.utils.JwtTokenUtil;
 import com.java2nb.novel.service.MyBookService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 @RequestMapping("book")
 @RestController
@@ -15,6 +19,8 @@ import javax.annotation.Resource;
 public class MyBookController {
     @Resource
     MyBookService myBookService;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     @GetMapping("listClickRank")
     public Result<?> listClickRank() {
@@ -32,5 +38,37 @@ public class MyBookController {
     @GetMapping("listUpdateRank")
     public Result<?> listUpdateRank() {
         return myBookService.listUpdateRank();
+    }
+
+    @GetMapping("queryBookIndexAbout")
+    public Result<?> queryBookIndexAbout(Long bookId, Long lastBookIndexId) {
+        return myBookService.queryBookIndexAbout(bookId, lastBookIndexId);
+    }
+
+    @PostMapping("addVisitCount")
+    public Result<?> addVisitCount(Long bookId) {
+        return myBookService.addVisitCount(bookId);
+    }
+
+    @PostMapping("addBookComment")
+    public Result<?> addBookComment(Long bookId, String commentContent, HttpServletRequest request) {
+        String token = CookieUtil.getCookie(request, "Authorization");
+        if(token == null) {
+            token = request.getHeader("Authorization");
+        }
+
+        //TODO 当前book_comment表为（book_id, create_user_id）这个字段创建了唯一键unique key，因此一个用户不能在同一本书上
+        //评论多次，这个特性看看日后能不能改动
+        if(token != null && jwtTokenUtil.canRefresh(token)) {
+            UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(token);
+            return myBookService.addBookComment(bookId, commentContent, userDetails.getId());
+        }else{
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+    }
+
+    @GetMapping("listCommentByPage")
+    public Result<?> listCommentByPage(Long bookId, @RequestParam(defaultValue = "1") Long curr, @RequestParam(defaultValue = "5") Long limit) {
+        return myBookService.listCommentByPage(bookId, curr, limit);
     }
 }

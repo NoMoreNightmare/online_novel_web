@@ -5,6 +5,7 @@ import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookComment;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.vo.BookCommentVO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -31,7 +32,7 @@ public class NonRestBookController {
         Book book = bookService.queryBook(id);
 
         //查询这个book的评论信息bookCommentPageBean
-        PageBean<BookComment> bookComment = bookService.queryBookComment(id, 1, 10);
+        PageBean<BookCommentVO> bookComment = bookService.queryBookComment(id, 1, 10);
 
         //查询这个book的同类书籍信息recBooks
         List<Book> recBooks = bookService.queryRecommendedBooks(id);

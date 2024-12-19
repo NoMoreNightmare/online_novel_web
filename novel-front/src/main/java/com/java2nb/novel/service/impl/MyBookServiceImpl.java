@@ -3,23 +3,24 @@ package com.java2nb.novel.service.impl;
 import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
+import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.entity.BookComment;
+import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.mapper.*;
+import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.vo.BookCommentVO;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
+import java.util.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 
@@ -35,10 +36,16 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Resource
     CacheService cacheService;
+
+
     @Autowired
-    private BookCommentMapper bookCommentMapper;
+    private FrontBookCommentMapper bookCommentMapper;
     @Autowired
     private BookIndexMapper bookIndexMapper;
+    @Autowired
+    private MyBookService myBookService;
+    @Resource(name = "db")
+    private BookContentService bookContentService;
 
     @Override
     public Result<?> listClickRank() {
@@ -115,7 +122,7 @@ public class MyBookServiceImpl implements MyBookService {
     }
 
     @Override
-    public PageBean<BookComment> queryBookComment(long bookId, long page, long pageSize) {
+    public PageBean<BookCommentVO> queryBookComment(long bookId, long page, long pageSize) {
         SelectStatementProvider select = select(BookCommentDynamicSqlSupport.commentContent, BookCommentDynamicSqlSupport.createUserId)
                 .from(BookCommentDynamicSqlSupport.bookComment)
                 .where(BookCommentDynamicSqlSupport.id, isEqualTo(bookId))
@@ -124,6 +131,8 @@ public class MyBookServiceImpl implements MyBookService {
                 .build()
                 .render(RenderingStrategy.MYBATIS3);
 
+        List<BookCommentVO> bookComments = bookCommentMapper.listCommentByPageOnlyUseBookIdWithContent(bookId, (page - 1) * pageSize, pageSize);
+
         SelectStatementProvider countSelect = select(count(BookCommentDynamicSqlSupport.id))
                 .from(BookCommentDynamicSqlSupport.bookComment)
                 .where(BookCommentDynamicSqlSupport.bookId, isEqualTo(bookId))
@@ -131,10 +140,7 @@ public class MyBookServiceImpl implements MyBookService {
                 .render(RenderingStrategy.MYBATIS3);
         long total = bookMapper.count(countSelect);
 
-        List<BookComment> bookComments = bookCommentMapper.selectMany(select);
-        PageBean<BookComment> pageBean = new PageBean<>(page, pageSize, total, true, bookComments);
-
-        return pageBean;
+        return new PageBean<>(page, pageSize, total, true, bookComments);
     }
 
     @Override
@@ -166,6 +172,72 @@ public class MyBookServiceImpl implements MyBookService {
             return null;
         }
 
+    }
+
+    @Override
+    public Result<?> queryBookIndexAbout(Long bookId, Long lastBookIndexId) {
+        //查询章节数量
+        long numberOfChapter = myBookService.queryBookChapterNumber(bookId);
+
+        //查询最后一章的内容
+        BookContent lastChapterContent = bookContentService.queryBookContent(bookId, lastBookIndexId);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("bookIndexCount", numberOfChapter);
+        String content = "";
+        if(lastChapterContent.getContent().length() > 50){
+            content = lastChapterContent.getContent().substring(0, 50);
+        }else{
+            content = lastChapterContent.getContent();
+        }
+        map.put("lastBookContent", content);
+        return Result.ok(map);
+    }
+
+    @Override
+    public long queryBookChapterNumber(Long bookId) {
+        SelectStatementProvider select = select(count(BookIndexDynamicSqlSupport.id))
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        return bookIndexMapper.count(select);
+    }
+
+    @Override
+    public Result<?> addVisitCount(Long bookId) {
+        boolean res = bookMapper.addVisitCountByOne(bookId);
+        if(res){
+            return Result.ok();
+        }else{
+            return Result.error();
+        }
+    }
+
+    @Override
+    public Result<?> addBookComment(Long bookId, String commentContent, Long userId) {
+
+        int success = bookCommentMapper.addBookComment(bookId, commentContent, userId);
+        if(success == 1){
+            return Result.ok();
+        }else{
+            return Result.customError(BookConstant.ADD_COMMENT_TO_BOOK_MSG, BookConstant.ADD_COMMENT_TO_BOOK);
+        }
+    }
+
+    @Override
+    public Result<?> listCommentByPage(Long bookId, Long curr, Long limit) {
+        PageBean<BookCommentVO> pageBean = new PageBean<>(curr, limit);
+
+        List<BookCommentVO> bookCommentVOS = bookCommentMapper.listCommentByPageOnlyUseBookIdWithContent(bookId, (curr - 1) * limit, limit);
+
+        long total = bookCommentMapper.countBookComment(bookId);
+
+        pageBean.setList(bookCommentVOS);
+        pageBean.setTotal(total);
+
+        return Result.ok(pageBean);
     }
 
     private Date getTimeOneMonthAgo(){

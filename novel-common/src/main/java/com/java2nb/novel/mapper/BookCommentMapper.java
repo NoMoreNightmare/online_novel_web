@@ -200,6 +200,8 @@ public interface BookCommentMapper {
         );
     }
 
-//    @Select("select count(book_comment.id) from book_comment where book_id = #{bookId}")
-//    long count(@Param("bookId") long bookId);
+    @Insert("insert into book_comment (book_id, comment_content, create_time, create_user_id) values (#{bookId}, #{commentContent}, NOW(), #{userId})")
+    int addBookComment(@Param("bookId") Long bookId, @Param("commentContent") String commentContent, @Param("userId") Long userId);
+
+
 }

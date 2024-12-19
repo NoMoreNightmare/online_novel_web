@@ -2,7 +2,6 @@ package com.java2nb.novel.service;
 
 import com.java2nb.novel.entity.User;
 
-import java.util.Map;
 import com.java2nb.novel.core.result.Result;
 
 /**
@@ -14,4 +13,8 @@ public interface MyUserService {
     public Result<?> login(User user);
 
     Result<?> refreshToken(String token);
+
+    Result<?> queryIsInShelf(Long bookId, Long userId);
+
+    Result<?> addToBookShelf(Long bookId, long preContentId, Long userId);
 }

@@ -21,5 +21,10 @@ public class PageBean<T> {
 
     private List<T> list;
 
+    public PageBean(long page, long pageSize) {
+        this.page = page;
+        this.pageSize = pageSize;
+    }
+
 
 }

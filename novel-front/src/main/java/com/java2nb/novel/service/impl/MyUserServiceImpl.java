@@ -1,24 +1,24 @@
 package com.java2nb.novel.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
-import cn.hutool.crypto.digest.MD5;
-import cn.hutool.log.Log;
 import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.cache.CacheService;
-import com.java2nb.novel.core.cache.impl.RedisServiceImpl;
 import com.java2nb.novel.core.exception.IdGenerateException;
+import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
-import com.java2nb.novel.core.utils.IpUtil;
 import com.java2nb.novel.core.utils.JwtTokenUtil;
 import com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil;
 import com.java2nb.novel.core.utils.SnowflakeIdGenerator;
 import com.java2nb.novel.entity.User;
+import com.java2nb.novel.entity.UserBookshelf;
+import com.java2nb.novel.mapper.UserBookshelfDynamicSqlSupport;
+import com.java2nb.novel.mapper.UserBookshelfMapper;
 import com.java2nb.novel.mapper.UserDynamicSqlSupport;
 import com.java2nb.novel.mapper.UserMapper;
 import com.java2nb.novel.service.MyUserService;
-import com.java2nb.novel.service.UserService;
-import io.github.xxyopen.web.exception.BusinessException;
+import org.mybatis.dynamic.sql.insert.render.BatchInsert;
+import org.mybatis.dynamic.sql.insert.render.InsertStatementProvider;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ import javax.annotation.Resource;
 import java.util.*;
 
 import static com.java2nb.novel.mapper.UserDynamicSqlSupport.*;
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
 
@@ -37,6 +37,8 @@ public class MyUserServiceImpl implements MyUserService {
 
     @Resource
     UserMapper userMapper;
+    @Resource
+    UserBookshelfMapper userBookshelfMapper;
     @Resource
     CacheService cacheService;
 
@@ -134,6 +136,45 @@ public class MyUserServiceImpl implements MyUserService {
             return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
         }
 
+
+    }
+
+    @Override
+    public Result<?> queryIsInShelf(Long bookId, Long userId) {
+        SelectStatementProvider checkBookInShelf = select(count(id))
+                .from(UserBookshelfDynamicSqlSupport.userBookshelf)
+                .where(UserBookshelfDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .and(UserBookshelfDynamicSqlSupport.userId, isEqualTo(userId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        long count = userBookshelfMapper.count(checkBookInShelf);
+
+        if(count == 0){
+            return Result.ok(false);
+        }else{
+            return Result.ok(true);
+        }
+
+    }
+
+    @Override
+    public Result<?> addToBookShelf(Long bookId, long preContentId, Long userId) {
+        if(!(Boolean)queryIsInShelf(bookId, userId).getData()){
+            UserBookshelf userBookshelf = new UserBookshelf();
+            userBookshelf.setBookId(bookId);
+            userBookshelf.setUserId(userId);
+            userBookshelf.setPreContentId(preContentId);
+
+            int success = userBookshelfMapper.insert(userBookshelf);
+
+            if(success == 1){
+                return Result.ok();
+            }else{
+                return Result.customError(BookConstant.ADD_TO_SHELF_MSG, BookConstant.ADD_TO_SHELF);
+            }
+        }
+
+        return Result.ok();
 
     }
 

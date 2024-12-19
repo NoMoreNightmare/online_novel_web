@@ -23,6 +23,8 @@ public class BookCommentVO extends BookComment {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
+    private String commentContent;
+
     @Override
     public String toString() {
         return super.toString();

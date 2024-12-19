@@ -354,4 +354,6 @@ public interface BookMapper {
     }
 
 
+    @Update("update book set visit_count = visit_count + 1 where id = #{bookId}")
+    boolean addVisitCountByOne(@Param("bookId") Long bookId);
 }

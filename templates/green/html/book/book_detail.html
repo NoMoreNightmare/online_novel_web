@@ -310,6 +310,7 @@
             success: function (data) {
                 if (data.code == 200) {
                     var commentList = data.data.list;
+                    alert(commentList)
                     if (commentList.length > 0) {
                         $("#bookCommentTotal").html("("+data.data.total+"条)");
                         var commentListHtml = "";
