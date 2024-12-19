@@ -87,4 +87,32 @@ public class MyUserController {
         return userService.addToBookShelf(bookId, preContentId, userId);
     }
 
+    @PostMapping("addReadHistory")
+    public Result<?> addReadHistory(Long bookId, Long preContentId, HttpServletRequest request) {
+        String token = CookieUtil.getCookie(request, "Authorization");
+        if(token == null) {
+            token = request.getHeader("Authorization");
+        }
+
+        if(!jwtTokenUtil.canRefresh(token)){
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+
+        UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(token);
+        Long userId = userDetails.getId();
+
+        //查询是否存在这个书的阅读记录
+        boolean isRead = userService.queryIsBookRead(bookId, userId);
+
+        if(!isRead){
+            userService.addReadHistory(bookId, userId, preContentId);
+        }else{
+            userService.updateReadHistory(bookId, userId, preContentId);
+        }
+
+        return Result.ok();
+
+
+    }
+
 }

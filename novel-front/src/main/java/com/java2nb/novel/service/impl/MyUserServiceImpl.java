@@ -45,6 +45,8 @@ public class MyUserServiceImpl implements MyUserService {
     private JwtTokenUtil jwtTokenUtil;
     @Autowired
     private UserBuyRecordMapper userBuyRecordMapper;
+    @Autowired
+    private FrontUserReadHistoryMapper userReadHistoryMapper;
 
 
     @Override
@@ -187,6 +189,29 @@ public class MyUserServiceImpl implements MyUserService {
                 .render(RenderingStrategy.MYBATIS3);
 
         return userBuyRecordMapper.count(select);
+    }
+
+    @Override
+    public boolean queryIsBookRead(Long bookId, Long userId) {
+        SelectStatementProvider select = select(count(UserReadHistoryDynamicSqlSupport.id))
+                .from(UserReadHistoryDynamicSqlSupport.userReadHistory)
+                .where(UserReadHistoryDynamicSqlSupport.userId, isEqualTo(userId))
+                .and(UserReadHistoryDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        long count = userReadHistoryMapper.count(select);
+        return count != 0;
+    }
+
+    @Override
+    public void addReadHistory(Long bookId, Long userId, Long preContentId) {
+        userReadHistoryMapper.insertNewHistory(userId, bookId, preContentId);
+    }
+
+    @Override
+    public void updateReadHistory(Long bookId, Long userId, Long preContentId) {
+        userReadHistoryMapper.updateBookHistory(userId, bookId, preContentId);
     }
 
 

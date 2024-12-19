@@ -19,4 +19,10 @@ public interface MyUserService {
     Result<?> addToBookShelf(Long bookId, long preContentId, Long userId);
 
     long queryUserBuyRecord(long userId, long bookIndexId);
+
+    boolean queryIsBookRead(Long bookId, Long userId);
+
+    void addReadHistory(Long bookId, Long userId, Long preContentId);
+
+    void updateReadHistory(Long bookId, Long userId, Long preContentId);
 }
