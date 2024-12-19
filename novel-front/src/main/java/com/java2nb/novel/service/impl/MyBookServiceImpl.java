@@ -1,5 +1,9 @@
 package com.java2nb.novel.service.impl;
 
+import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
@@ -56,9 +60,13 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Override
     public Result<?> listClickRank() {
-        List<Book> books = (List<Book>) cacheService.getObject(CacheKey.INDEX_CLICK_RANK_BOOK_KEY);
 
-        if(books == null || books.isEmpty()){
+        String bookJson = cacheService.get(CacheKey.INDEX_CLICK_RANK_BOOK_KEY);
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Book> books = null;
+
+
+        if(bookJson == null || "".equals(bookJson)) {
             //查询数据库，并缓存
             SelectStatementProvider select = select(id, picUrl, bookName, bookDesc)
                     .from(book)
@@ -68,17 +76,34 @@ public class MyBookServiceImpl implements MyBookService {
                     .render(RenderingStrategy.MYBATIS3);
 
             books = bookMapper.selectMany(select);
-            cacheService.setObject(CacheKey.INDEX_CLICK_RANK_BOOK_KEY, books, 1800);
+            String jsonStr;
+            try {
+                jsonStr = objectMapper.writeValueAsString(books);
+            } catch (JsonProcessingException e) {
+                return Result.customError("序列化错误", 2020);
+            }
+            cacheService.set(CacheKey.INDEX_CLICK_RANK_BOOK_KEY, jsonStr, 1800);
+        }else{
+            try {
+                books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});
+            } catch (JsonProcessingException e) {
+                return Result.customError("反序列化错误", 2021);
+            }
         }
+
+
 
         return Result.ok(books);
     }
 
     @Override
     public Result<?> listNewRank() {
-        List<Book> books = (List<Book>) cacheService.getObject(CacheKey.INDEX_NEW_BOOK_KEY);
+        String booksJson = cacheService.get(CacheKey.INDEX_NEW_BOOK_KEY);
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Book> books = null;
 
-        if(books == null || books.isEmpty()){
+
+        if(booksJson == null || "".equals(booksJson)) {
             //查询数据库，并缓存
             SelectStatementProvider select = select(id, picUrl, bookName, bookDesc)
                     .from(book)
@@ -89,19 +114,37 @@ public class MyBookServiceImpl implements MyBookService {
                     .render(RenderingStrategy.MYBATIS3);
 
             books = bookMapper.selectMany(select);
-            cacheService.setObject(CacheKey.INDEX_NEW_BOOK_KEY, books, 1800);
+            try {
+                booksJson = objectMapper.writeValueAsString(books);
+            } catch (JsonProcessingException e) {
+                return Result.customError("序列化错误", 2020);
+            }
+            cacheService.set(CacheKey.INDEX_NEW_BOOK_KEY, booksJson, 1800);
+        }else{
+            try {
+                books = objectMapper.readValue(booksJson, new TypeReference<List<Book>>() {
+                });
+            } catch (JsonProcessingException e) {
+                return Result.customError("反序列化错误", 2021);
+            }
         }
+
+
 
         return Result.ok(books);
     }
 
     @Override
     public Result<?> listUpdateRank() {
-        List<Book> books = (List<Book>) cacheService.getObject(CacheKey.INDEX_NEW_BOOK_KEY);
+        String booksJson = cacheService.get(CacheKey.INDEX_NEW_BOOK_KEY);
 
-        if(books == null || books.isEmpty()){
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Book> books = null;
+
+
+        if(booksJson == null || "".equals(booksJson)) {
             //查询数据库，并缓存
-            SelectStatementProvider select = select(id, picUrl, bookName, bookDesc, catId, catName, lastIndexName, authorName)
+            SelectStatementProvider select = select(id, picUrl, bookName, bookDesc, catId, catName, lastIndexName, authorName, lastIndexUpdateTime)
                     .from(book)
                     .where(updateTime, isGreaterThanOrEqualTo(getTimeTwoMonthAgo()))
                     .orderBy(visitCount.descending())
@@ -110,8 +153,23 @@ public class MyBookServiceImpl implements MyBookService {
                     .render(RenderingStrategy.MYBATIS3);
 
             books = bookMapper.selectMany(select);
-            cacheService.setObject(CacheKey.INDEX_NEW_BOOK_KEY, books, 1800);
+            try {
+                booksJson = objectMapper.writeValueAsString(books);
+            } catch (JsonProcessingException e) {
+                return Result.customError("序列化错误", 2020);
+            }
+
+            cacheService.set(CacheKey.INDEX_NEW_BOOK_KEY, booksJson, 1800);
+        }else{
+            try {
+                books = objectMapper.readValue(booksJson, new TypeReference<List<Book>>() {
+                });
+            } catch (JsonProcessingException e) {
+                return Result.customError("反序列化错误", 2021);
+            }
+
         }
+
 
         return Result.ok(books);
     }

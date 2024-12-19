@@ -1,5 +1,7 @@
 package com.java2nb.novel.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 import javax.annotation.Generated;
@@ -56,6 +58,7 @@ public class Book implements Serializable{
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private String lastIndexName;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Date lastIndexUpdateTime;
 
@@ -65,9 +68,11 @@ public class Book implements Serializable{
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Byte status;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Date updateTime;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Date createTime;
 
@@ -77,6 +82,7 @@ public class Book implements Serializable{
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private String crawlBookId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Date crawlLastTime;
 
