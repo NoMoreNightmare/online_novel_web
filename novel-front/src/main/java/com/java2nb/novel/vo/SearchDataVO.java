@@ -6,10 +6,17 @@ import java.util.Date;
 
 /**
  * 小说搜索参数
- * @author 11797
+ *
+ * @author 10253
  */
 @Data
-public class BookSpVO {
+public class SearchDataVO {
+
+    private Integer curr;
+
+    private Integer offset;
+
+    private Integer limit;
 
     private String keyword;
 
@@ -31,7 +38,9 @@ public class BookSpVO {
 
     private String sort;
 
-
+    public void calculateOffset(){
+        offset = (curr - 1) * limit;
+    }
 
 
 }

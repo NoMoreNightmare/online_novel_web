@@ -5,7 +5,7 @@ import io.github.xxyopen.model.page.PageBean;
 import com.java2nb.novel.entity.*;
 import com.java2nb.novel.vo.BookCommentVO;
 import com.java2nb.novel.vo.BookSettingVO;
-import com.java2nb.novel.vo.BookSpVO;
+import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
 
 import java.util.Date;
@@ -48,7 +48,7 @@ public interface BookService {
      * @param pageSize 分页大小
      * @return 小说集合分页信息
      * */
-    PageBean<?> searchByPage(BookSpVO params, int page, int pageSize);
+    PageBean<?> searchByPage(SearchDataVO params, int page, int pageSize);
 
     /**
      * 查询小说分类列表

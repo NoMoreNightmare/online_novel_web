@@ -6,12 +6,15 @@ import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.entity.Book;
+import com.java2nb.novel.entity.BookCategory;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.MyBookService;
 import com.java2nb.novel.vo.BookCommentVO;
+import com.java2nb.novel.vo.BookVO;
+import com.java2nb.novel.vo.SearchDataVO;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +34,8 @@ import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
 @Service
 public class MyBookServiceImpl implements MyBookService {
-    @Resource
-    BookMapper bookMapper;
+    @Autowired
+    FrontBookMapper bookMapper;
 
     @Resource
     CacheService cacheService;
@@ -48,6 +51,8 @@ public class MyBookServiceImpl implements MyBookService {
     private BookContentService bookContentService;
     @Autowired
     private BookContentMapper bookContentMapper;
+    @Autowired
+    private BookCategoryMapper bookCategoryMapper;
 
     @Override
     public Result<?> listClickRank() {
@@ -77,7 +82,7 @@ public class MyBookServiceImpl implements MyBookService {
             //查询数据库，并缓存
             SelectStatementProvider select = select(id, picUrl, bookName, bookDesc)
                     .from(book)
-                    .where(createTime, isGreaterThanOrEqualTo(getTimeOneMonthAgo()))
+                    .where(createTime, isGreaterThanOrEqualTo(getTimeTwoMonthAgo()))
                     .orderBy(visitCount.descending())
                     .limit(10L)
                     .build()
@@ -98,7 +103,7 @@ public class MyBookServiceImpl implements MyBookService {
             //查询数据库，并缓存
             SelectStatementProvider select = select(id, picUrl, bookName, bookDesc, catId, catName, lastIndexName, authorName)
                     .from(book)
-                    .where(updateTime, isGreaterThanOrEqualTo(getTimeOneMonthAgo()))
+                    .where(updateTime, isGreaterThanOrEqualTo(getTimeTwoMonthAgo()))
                     .orderBy(visitCount.descending())
                     .limit(10L)
                     .build()
@@ -298,8 +303,29 @@ public class MyBookServiceImpl implements MyBookService {
         return bookIndexMapper.selectMany(select);
     }
 
-    private Date getTimeOneMonthAgo(){
-        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1).minusDays(4);
+    @Override
+    public List<BookVO> queryWithCondition(SearchDataVO searchData) {
+        searchData.calculateOffset();
+        return bookMapper.searchByPage(searchData);
+    }
+
+    @Override
+    public Result<?> queryAllCategory() {
+        SelectStatementProvider select = select(BookCategoryDynamicSqlSupport.id, BookCategoryDynamicSqlSupport.name, BookCategoryDynamicSqlSupport.workDirection)
+                .from(BookCategoryDynamicSqlSupport.bookCategory)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        List<BookCategory> bookCategories = bookCategoryMapper.selectMany(select);
+        return Result.ok(bookCategories);
+    }
+
+    @Override
+    public int queryWithConditionTotal(SearchDataVO searchData) {
+        return bookMapper.searchByPageTotal(searchData);
+    }
+
+    private Date getTimeTwoMonthAgo(){
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(2);
         return Date.from(oneMonthAgo.atZone(ZoneId.systemDefault()).toInstant());
     }
 }

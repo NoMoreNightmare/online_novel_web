@@ -5,13 +5,19 @@ import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.CookieUtil;
 import com.java2nb.novel.core.utils.JwtTokenUtil;
+import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.vo.BookVO;
+import com.java2nb.novel.vo.SearchDataVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RequestMapping("book")
 @RestController
@@ -70,5 +76,22 @@ public class MyBookController {
     @GetMapping("listCommentByPage")
     public Result<?> listCommentByPage(Long bookId, @RequestParam(defaultValue = "1") Long curr, @RequestParam(defaultValue = "5") Long limit) {
         return myBookService.listCommentByPage(bookId, curr, limit);
+    }
+
+    @GetMapping("searchByPage")
+    public Result<?> searchByPage(SearchDataVO searchData) {
+      List<BookVO> list = myBookService.queryWithCondition(searchData);
+      int total = myBookService.queryWithConditionTotal(searchData);
+      Map<String, Object> map = new HashMap<>();
+      map.put("list", list);
+      map.put("total", total);
+      map.put("pageNum", searchData.getCurr());
+      map.put("pageSize", searchData.getLimit());
+      return Result.ok(map);
+    }
+
+    @GetMapping("listBookCategory")
+    public Result<?> listBookCategory() {
+        return myBookService.queryAllCategory();
     }
 }

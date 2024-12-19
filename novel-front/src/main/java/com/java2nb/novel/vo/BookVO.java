@@ -8,13 +8,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author Administrator
+ * @author 10253
  */
 @Data
 public class BookVO extends Book implements Serializable {
 
     @JsonFormat(timezone = "GMT+8", pattern = "MM/dd HH:mm")
     private Date lastIndexUpdateTime;
-
-
 }

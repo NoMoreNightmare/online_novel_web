@@ -16,7 +16,7 @@ import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.FileService;
 import com.java2nb.novel.vo.BookCommentVO;
 import com.java2nb.novel.vo.BookSettingVO;
-import com.java2nb.novel.vo.BookSpVO;
+import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
 import io.github.xxyopen.model.page.PageBean;
 import io.github.xxyopen.model.page.builder.pagehelper.PageBuilder;
@@ -190,7 +190,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public PageBean<?> searchByPage(BookSpVO params, int page, int pageSize) {
+    public PageBean<?> searchByPage(SearchDataVO params, int page, int pageSize) {
 
         if (params.getUpdatePeriod() != null) {
             long cur = System.currentTimeMillis();

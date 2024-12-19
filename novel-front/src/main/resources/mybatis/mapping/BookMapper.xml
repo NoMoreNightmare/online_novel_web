@@ -3,37 +3,87 @@
 
 <mapper namespace="com.java2nb.novel.mapper.FrontBookMapper">
 
-    <select id="searchByPage" parameterType="com.java2nb.novel.vo.BookSpVO" resultType="com.java2nb.novel.vo.BookVO">
-        select
-        id,cat_id,cat_name,book_name,author_id,author_name,word_count,last_index_id,last_index_name,score,pic_url,book_status,last_index_update_time,book_desc
-        from book where word_count > 0
-        <if test="keyword != null and keyword != ''">
-            and (book_name like concat('%',#{keyword},'%') or author_name like concat('%',#{keyword},'%'))
-        </if>
-        <if test="workDirection != null">
-            and work_direction = #{workDirection}
-        </if>
-        <if test="catId != null">
-            and cat_id = #{catId}
-        </if>
-        <if test="isVip != null">
-            and is_vip = #{isVip}
-        </if>
-        <if test="bookStatus != null">
-            and book_status = #{bookStatus}
-        </if>
-        <if test="wordCountMin != null">
-            and word_count >= #{wordCountMin}
-        </if>
-        <if test="wordCountMax != null">
-            and word_count <![CDATA[ < ]]> #{wordCountMax}
-        </if>
-        <if test="updateTimeMin != null">
-            and last_index_update_time >= #{updateTimeMin}
+<!--    <select id="searchByPage" parameterType="com.java2nb.novel.vo.SearchDataVO" resultType="com.java2nb.novel.vo.BookVO">-->
+<!--        select-->
+<!--        id,cat_id,cat_name,book_name,author_id,author_name,word_count,last_index_id,last_index_name,score,pic_url,book_status,last_index_update_time,book_desc-->
+<!--        from book where word_count > 0-->
+<!--        <if test="keyword != null and keyword != ''">-->
+<!--            and (book_name like concat('%',#{keyword},'%') or author_name like concat('%',#{keyword},'%'))-->
+<!--        </if>-->
+<!--        <if test="workDirection != null">-->
+<!--            and work_direction = #{workDirection}-->
+<!--        </if>-->
+<!--        <if test="catId != null">-->
+<!--            and cat_id = #{catId}-->
+<!--        </if>-->
+<!--        <if test="isVip != null">-->
+<!--            and is_vip = #{isVip}-->
+<!--        </if>-->
+<!--        <if test="bookStatus != null">-->
+<!--            and book_status = #{bookStatus}-->
+<!--        </if>-->
+<!--        <if test="wordCountMin != null">-->
+<!--            and word_count >= #{wordCountMin}-->
+<!--        </if>-->
+<!--        <if test="wordCountMax != null">-->
+<!--            and word_count <![CDATA[ < ]]> #{wordCountMax}-->
+<!--        </if>-->
+<!--        <if test="updateTimeMin != null">-->
+<!--            and last_index_update_time >= #{updateTimeMin}-->
+<!--        </if>-->
+
+<!--    </select>-->
+
+    <select id="searchByPage" parameterType="com.java2nb.novel.vo.SearchDataVO" resultType="com.java2nb.novel.vo.BookVO">
+        select book.id, book.word_count, book.cat_id, book.cat_name,
+               book.book_name, book.last_index_name, book.author_name
+        from book
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and book.book_name like concat('%', #{keyword}, '%')
+            </if>
+            <if test="workDirection != null">
+                and book.work_direction = #{workDirection}
+            </if>
+            <if test="catId != null">
+                and book.cat_id = #{catId}
+            </if>
+            <if test="isVip != null">
+                and book.is_vip = #{isVip}
+            </if>
+            <if test="bookStatus != null">
+                and book.book_status = #{bookStatus}
+            </if>
+            <if test="wordCountMin != null">
+                and book.word_count >= #{wordCountMin}
+            </if>
+            <if test="wordCountMin == null">
+                and book.word_count > 0
+            </if>
+            <if test="wordCountMax != null">
+                and book.word_count &lt;= #{wordCountMax}
+            </if>
+            <if test="updatePeriod != null">
+                and book.update_time >= DATE_SUB(NOW(), INTERVAL #{updatePeriod} DAY)
+            </if>
+        </where>
+        <choose>
+            <when test="sort == 'last_index_update_time'">
+                order by book.last_index_update_time desc
+            </when>
+            <when test="sort == 'word_count'">
+                order by book.word_count desc
+            </when>
+            <when test="sort == 'visit_count'">
+                order by book.visit_count desc
+            </when>
+        </choose>
+
+        <if test="curr != null">
+            limit #{offset}, #{limit}
         </if>
 
     </select>
-
     <update id="addVisitCount">
         update book
         set visit_count = visit_count + ${visitCount}
@@ -69,6 +119,39 @@
         select id, book_name, author_name, pic_url, book_desc, score
         from book
         ORDER BY score, RAND() LIMIT #{limit};
+    </select>
+
+    <select id="searchByPageTotal" parameterType="com.java2nb.novel.vo.SearchDataVO" resultType="java.lang.Integer">
+        select count(id) from book
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and book.book_name like concat('%', #{keyword}, '%')
+            </if>
+            <if test="workDirection != null">
+                and book.work_direction = #{workDirection}
+            </if>
+            <if test="catId != null">
+                and book.cat_id = #{catId}
+            </if>
+            <if test="isVip != null">
+                and book.is_vip = #{isVip}
+            </if>
+            <if test="bookStatus != null">
+                and book.book_status = #{bookStatus}
+            </if>
+            <if test="wordCountMin != null">
+                and book.word_count >= #{wordCountMin}
+            </if>
+            <if test="wordCountMin == null">
+                and book.word_count > 0
+            </if>
+            <if test="wordCountMax != null">
+                and book.word_count &lt;= #{wordCountMax}
+            </if>
+            <if test="updatePeriod != null">
+                and book.update_time >= DATE_SUB(NOW(), INTERVAL #{updatePeriod} DAY)
+            </if>
+        </where>
     </select>
 
 </mapper>

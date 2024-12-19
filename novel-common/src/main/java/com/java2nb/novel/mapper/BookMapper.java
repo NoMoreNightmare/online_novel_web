@@ -27,7 +27,7 @@ import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 import org.mybatis.dynamic.sql.util.mybatis3.MyBatis3Utils;
 
-@Mapper
+//@Mapper
 public interface BookMapper {
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     BasicColumn[] selectList = BasicColumn.columnList(id, workDirection, catId, catName, picUrl, bookName, authorId, authorName, bookDesc, score, bookStatus, visitCount, wordCount, commentCount, yesterdayBuy, lastIndexId, lastIndexName, lastIndexUpdateTime, isVip, status, updateTime, createTime, crawlSourceId, crawlBookId, crawlLastTime, crawlIsStop);

@@ -121,4 +121,5 @@ public class NonRestBookController {
 
         return ThreadLocalUtil.getTemplateDir() + "book/book_index";
     }
+
 }

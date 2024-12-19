@@ -6,6 +6,8 @@ import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.vo.BookCommentVO;
+import com.java2nb.novel.vo.BookVO;
+import com.java2nb.novel.vo.SearchDataVO;
 
 import java.util.List;
 
@@ -41,4 +43,10 @@ public interface MyBookService {
     BookContent queryBookContent(long bookId, long bookIndexId);
 
     List<BookIndex> queryAllIndex(long bookId);
+
+    List<BookVO> queryWithCondition(SearchDataVO searchData);
+
+    Result<?> queryAllCategory();
+
+    int queryWithConditionTotal(SearchDataVO searchData);
 }

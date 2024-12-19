@@ -10,7 +10,7 @@ import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.vo.BookCommentVO;
 import com.java2nb.novel.vo.BookSettingVO;
-import com.java2nb.novel.vo.BookSpVO;
+import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
 import io.github.xxyopen.model.page.PageBean;
 import io.github.xxyopen.model.page.builder.pagehelper.PageBuilder;
@@ -81,8 +81,8 @@ public class BookController extends BaseController {
      * 分页搜索
      */
     @GetMapping("searchByPage")
-    public RestResult<?> searchByPage(BookSpVO bookSP, @RequestParam(value = "curr", defaultValue = "1") int page,
-        @RequestParam(value = "limit", defaultValue = "20") int pageSize) {
+    public RestResult<?> searchByPage(SearchDataVO bookSP, @RequestParam(value = "curr", defaultValue = "1") int page,
+                                      @RequestParam(value = "limit", defaultValue = "20") int pageSize) {
         return RestResult.ok(bookService.searchByPage(bookSP, page, pageSize));
     }
 

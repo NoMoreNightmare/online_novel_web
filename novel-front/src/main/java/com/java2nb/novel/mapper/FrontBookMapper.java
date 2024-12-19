@@ -1,7 +1,7 @@
 package com.java2nb.novel.mapper;
 
 import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.vo.BookSpVO;
+import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -12,8 +12,8 @@ import java.util.List;
  */
 public interface FrontBookMapper extends BookMapper {
 
+    List<BookVO> searchByPage(SearchDataVO params);
 
-    List<BookVO> searchByPage(BookSpVO params);
 
     void addVisitCount(@Param("bookId") Long bookId, @Param("visitCount") Integer visitCount);
 
@@ -29,4 +29,6 @@ public interface FrontBookMapper extends BookMapper {
      * @return 小说集合
      * */
     List<Book> selectIdsByScoreAndRandom(@Param("limit") int limit);
+
+    int searchByPageTotal(SearchDataVO searchData);
 }
