@@ -208,7 +208,7 @@ public class PageController extends BaseController {
      * 目录页
      */
     @SneakyThrows
-    @RequestMapping("/book/indexList-{bookId}.html")
+//    @RequestMapping("/book/indexList-{bookId}.html")
     public String indexList(@PathVariable("bookId") Long bookId, Model model) {
         Book book = bookService.queryBookDetail(bookId);
         model.addAttribute("book", book);

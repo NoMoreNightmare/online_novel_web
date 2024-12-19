@@ -40,4 +40,5 @@ public interface MyBookService {
 
     BookContent queryBookContent(long bookId, long bookIndexId);
 
+    List<BookIndex> queryAllIndex(long bookId);
 }

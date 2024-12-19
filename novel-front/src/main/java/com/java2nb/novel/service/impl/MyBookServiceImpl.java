@@ -287,6 +287,17 @@ public class MyBookServiceImpl implements MyBookService {
 
     }
 
+    @Override
+    public List<BookIndex> queryAllIndex(long bookId) {
+        SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.indexName, BookIndexDynamicSqlSupport.isVip)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        return bookIndexMapper.selectMany(select);
+    }
+
     private Date getTimeOneMonthAgo(){
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1).minusDays(4);
         return Date.from(oneMonthAgo.atZone(ZoneId.systemDefault()).toInstant());

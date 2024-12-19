@@ -108,9 +108,17 @@ public class NonRestBookController {
         }
 
         model.addAttribute("needBuy", needBuy);
-
-
         return ThreadLocalUtil.getTemplateDir() + "book/book_content";
+    }
 
+    @GetMapping("indexList-{bookId}.html")
+    public String indexList(@PathVariable("bookId") long bookId, Model model) {
+        Book book = bookService.queryBook(bookId);
+        List<BookIndex> bookIndex = bookService.queryAllIndex(bookId);
+        model.addAttribute("book", book);
+        model.addAttribute("bookIndexCount", bookIndex.size());
+        model.addAttribute("bookIndexList", bookIndex);
+
+        return ThreadLocalUtil.getTemplateDir() + "book/book_index";
     }
 }
