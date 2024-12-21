@@ -1,6 +1,7 @@
 package com.java2nb.novel.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
+import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.exception.IdGenerateException;
@@ -12,10 +13,12 @@ import com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil;
 import com.java2nb.novel.core.utils.SnowflakeIdGenerator;
 import com.java2nb.novel.entity.User;
 import com.java2nb.novel.entity.UserBookshelf;
+import com.java2nb.novel.entity.UserFeedback;
 import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.MyUserService;
-import org.mybatis.dynamic.sql.insert.render.BatchInsert;
-import org.mybatis.dynamic.sql.insert.render.InsertStatementProvider;
+import com.java2nb.novel.vo.BookCommentVO;
+import com.java2nb.novel.vo.BookReadHistoryVO;
+import com.java2nb.novel.vo.BookShelfVO;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +35,8 @@ import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 @Service
 public class MyUserServiceImpl implements MyUserService {
 
-    @Resource
-    UserMapper userMapper;
+    @Autowired
+    FrontUserMapper userMapper;
     @Resource
     UserBookshelfMapper userBookshelfMapper;
     @Resource
@@ -47,6 +50,10 @@ public class MyUserServiceImpl implements MyUserService {
     private UserBuyRecordMapper userBuyRecordMapper;
     @Autowired
     private FrontUserReadHistoryMapper userReadHistoryMapper;
+    @Autowired
+    private FrontBookCommentMapper bookCommentMapper;
+    @Autowired
+    private UserFeedbackMapper userFeedbackMapper;
 
 
     @Override
@@ -212,6 +219,92 @@ public class MyUserServiceImpl implements MyUserService {
     @Override
     public void updateReadHistory(Long bookId, Long userId, Long preContentId) {
         userReadHistoryMapper.updateBookHistory(userId, bookId, preContentId);
+    }
+
+    @Override
+    public Result<?> listCommentByPage(Long userId, Long curr, Long limit) {
+        PageBean<BookCommentVO> pageBean = new PageBean<>(curr, limit);
+
+        List<BookCommentVO> bookCommentVOS = bookCommentMapper.listCommentByPageOnlyUseUserIdWithContent(userId, (curr - 1) * limit, limit);
+
+        long total = bookCommentMapper.countBookCommentByUserId(userId);
+
+        pageBean.setList(bookCommentVOS);
+        pageBean.setTotal(total);
+
+        return Result.ok(pageBean);
+    }
+
+    @Override
+    public Result<?> getUserInfo(Long userId) {
+        SelectStatementProvider select = select(userPhoto, nickName, username, accountBalance, userSex)
+                .from(user)
+                .where(id, isEqualTo(userId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        Optional<User> optionalUser = userMapper.selectOne(select);
+        if(optionalUser.isPresent()){
+            return Result.ok(optionalUser.get());
+        }else{
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+    }
+
+    @Override
+    public Result<?> listBookShelfByPage(Long userId, Long limit) {
+        PageBean<BookShelfVO> pageBean = new PageBean<>(1, limit);
+        List<BookShelfVO> list = userMapper.selectBookShelfList(userId, 0, limit);
+
+        pageBean.setList(list);
+        return Result.ok(pageBean);
+    }
+
+    @Override
+    public Result<?> listReadHistoryByPage(Long userId, long curr, Long limit) {
+        PageBean<BookReadHistoryVO> pageBean = new PageBean<>(curr, limit);
+
+        long total = userReadHistoryMapper.countTotalHistory(userId);
+        pageBean.setTotal(total);
+        List<BookReadHistoryVO> bookReadHistoryVOS = userReadHistoryMapper.listReadHistory(userId, (curr - 1) * limit, limit);
+        pageBean.setList(bookReadHistoryVOS);
+        return Result.ok(pageBean);
+    }
+
+    @Override
+    public Result<?> listUserFeedbackByPage(Long userId, Long curr, Long limit) {
+        PageBean<UserFeedback> pageBean = new PageBean<>(curr, limit);
+
+        long total = userFeedbackMapper.countTotalFeedback(userId);
+        pageBean.setTotal(total);
+        List<UserFeedback> userFeedbackList = userFeedbackMapper.listUserFeedbackByPage(userId, (curr - 1) * limit, limit);
+        pageBean.setList(userFeedbackList);
+        return Result.ok(pageBean);
+    }
+
+    @Override
+    public void updateUserSex(Long userId, byte userSex) {
+        userMapper.updateUserSex(userId, userSex);
+    }
+
+    @Override
+    public int updatePassword(Long userId, String oldPassword, String newPassword) {
+        newPassword = BCrypt.hashpw(newPassword);
+        return userMapper.updatePassword(userId, newPassword);
+    }
+
+    @Override
+    public int updateNickName(Long userId, String nickName) {
+        return userMapper.updateNickName(userId, nickName);
+    }
+
+    @Override
+    public void updateUserPhoto(Long userId, String userPhoto) {
+        userMapper.updateUserPhoto(userId, userPhoto);
+    }
+
+    @Override
+    public String queryUserPhoto(Long userId) {
+        return userMapper.queryUserPhoto(userId);
     }
 
 

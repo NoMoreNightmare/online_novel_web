@@ -94,4 +94,9 @@ public class MyBookController {
     public Result<?> listBookCategory() {
         return myBookService.queryAllCategory();
     }
+
+    @GetMapping("listRank")
+    public Result<?> listRank(int type, int limit) {
+        return myBookService.listRank(type, limit);
+    }
 }

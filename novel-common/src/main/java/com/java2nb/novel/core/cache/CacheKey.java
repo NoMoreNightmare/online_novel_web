@@ -74,4 +74,24 @@ public interface CacheKey {
      * redisson的生成id的分布式锁
      */
     String REDISSON_ID_GENERATOR = "redissonIdGenerator";
+
+    /**
+     * 排行榜页点击榜
+     */
+    String RANKING_LIST_CLICK = "rankingListClick";
+
+    /**
+     * 排行榜新书榜
+     */
+    String RANKING_LIST_NEW = "rankingListNew";
+
+    /**
+     * 排行榜更新榜
+     */
+    String RANKING_LIST_UPDATE = "rankingListUpdate";
+
+    /**
+     * 排行榜评论榜
+     */
+    String RANKING_LIST_COMMENT = "rankingListComment";
 }

@@ -231,7 +231,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageBean<BookReadHistoryVO> listReadHistoryByPage(Long userId, int page, int pageSize) {
         PageHelper.startPage(page, pageSize);
-        return PageBuilder.build(userReadHistoryMapper.listReadHistory(userId));
+        return PageBuilder.build(userReadHistoryMapper.listReadHistory(userId, (page - 1) * pageSize, pageSize));
     }
 
     @Override

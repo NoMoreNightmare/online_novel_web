@@ -49,4 +49,6 @@ public interface MyBookService {
     Result<?> queryAllCategory();
 
     int queryWithConditionTotal(SearchDataVO searchData);
+
+    Result<?> listRank(int rankType, int limit);
 }

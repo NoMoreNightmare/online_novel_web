@@ -33,7 +33,7 @@ public class User {
 
     @Null(groups = {AddGroup.class})
     @Pattern(groups = {
-        UpdateGroup.class}, regexp = "^/localPic/\\d{4}/\\d{2}/\\d{2}/[A-Za-z0-9]+\\.(jpg|jpeg|swf|gif|png|JPG|JPEG|SWF|GIF|PNG)$", message = "只能上传图片格式的文件！")
+        UpdateGroup.class}, regexp = "^/localPic/\\d{4}/\\d{2}/[A-Za-z0-9]+\\.(jpg|jpeg|swf|gif|png|JPG|JPEG|SWF|GIF|PNG)$", message = "只能上传图片格式的文件！")
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private String userPhoto;
 

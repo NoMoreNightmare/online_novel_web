@@ -1,19 +1,25 @@
 package com.java2nb.novel.controller;
 
+import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.cache.CacheService;
-import com.java2nb.novel.core.utils.IpUtil;
-import com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil;
+import com.java2nb.novel.core.result.LoginAndRegisterConstant;
+import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.core.utils.*;
+import com.java2nb.novel.mapper.FrontUserMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
 
@@ -29,7 +35,12 @@ import static com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil.VERIFICA
 public class MyFileController {
     @Resource
     private CacheService cacheService;
-
+    @Resource
+    private JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private FrontUserMapper userMapper;
+    @Value("${pic.save.path}")
+    private String picSavePath;
 
     @GetMapping("getVerify")
     @SneakyThrows
@@ -43,4 +54,27 @@ public class MyFileController {
 
         cacheService.set(VERIFICATION_CODE + ":" + IpUtil.getRealIp(request), code, 30);
     }
+
+    @ResponseBody
+    @PostMapping("picUpload")
+    public Result<?> picUpload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        String token = getToken(request);
+        if(!jwtTokenUtil.canRefresh(token)){
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+
+        String filepath = PictureUtil.createFile(file, picSavePath);
+
+        return Result.ok(filepath);
+
+    }
+
+    private static String getToken(HttpServletRequest request) {
+        String token = CookieUtil.getCookie(request, "Authorization");
+        if(token == null) {
+            token = request.getHeader("Authorization");
+        }
+        return token;
+    }
+
 }

@@ -1,6 +1,9 @@
 package com.java2nb.novel.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 import javax.annotation.Generated;
 
@@ -14,6 +17,8 @@ public class UserFeedback {
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private String content;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Date createTime;
 

@@ -3,7 +3,6 @@ package com.java2nb.novel.controller.page;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
@@ -11,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PageBean<T> {
-    private long page = 1;
+    private long pageNum = 1;
 
     private long pageSize = 10;
 
@@ -22,7 +21,7 @@ public class PageBean<T> {
     private List<T> list;
 
     public PageBean(long page, long pageSize) {
-        this.page = page;
+        this.pageNum = page;
         this.pageSize = pageSize;
     }
 

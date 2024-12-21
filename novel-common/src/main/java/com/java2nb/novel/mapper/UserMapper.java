@@ -230,4 +230,5 @@ public interface UserMapper {
 
     @Select("select count(*) from user where username = #{username}")
     Integer selectExistUserNumber(@Param("username") String username);
+
 }

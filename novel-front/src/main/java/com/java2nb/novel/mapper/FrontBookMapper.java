@@ -4,6 +4,7 @@ import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -31,4 +32,8 @@ public interface FrontBookMapper extends BookMapper {
     List<Book> selectIdsByScoreAndRandom(@Param("limit") int limit);
 
     int searchByPageTotal(SearchDataVO searchData);
+
+    @Update("update book set comment_count = comment_count + #{increment} where id = #{bookId}")
+    void updateCommentCount(int increment, long bookId);
+
 }

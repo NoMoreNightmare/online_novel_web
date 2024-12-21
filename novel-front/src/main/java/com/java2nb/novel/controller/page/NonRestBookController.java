@@ -69,6 +69,7 @@ public class NonRestBookController {
         Book book = bookService.queryBook(bookId);
         //书的目录信息
         BookIndex bookIndex = bookService.queryAboutCurrentIndex(bookId, bookIndexId);
+
         Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
         Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
         //书的章节目录内容
@@ -121,5 +122,6 @@ public class NonRestBookController {
 
         return ThreadLocalUtil.getTemplateDir() + "book/book_index";
     }
+
 
 }

@@ -25,4 +25,24 @@ public interface MyUserService {
     void addReadHistory(Long bookId, Long userId, Long preContentId);
 
     void updateReadHistory(Long bookId, Long userId, Long preContentId);
+
+    Result<?> listCommentByPage(Long userId, Long curr, Long limit);
+
+    Result<?> getUserInfo(Long userId);
+
+    Result<?> listBookShelfByPage(Long userId, Long limit);
+
+    Result<?> listReadHistoryByPage(Long userId, long l, Long limit);
+
+    Result<?> listUserFeedbackByPage(Long userId, Long curr, Long limit);
+
+    void updateUserSex(Long userId, byte userSex);
+
+    int updatePassword(Long userId, String oldPassword, String newPassword);
+
+    int updateNickName(Long userId, String nickName);
+
+    void updateUserPhoto(Long userId, String userPhoto);
+
+    String queryUserPhoto(Long userId);
 }
