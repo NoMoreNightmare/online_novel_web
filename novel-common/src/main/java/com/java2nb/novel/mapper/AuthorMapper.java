@@ -8,14 +8,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Generated;
-import org.apache.ibatis.annotations.DeleteProvider;
-import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.ResultMap;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.SelectProvider;
-import org.apache.ibatis.annotations.UpdateProvider;
+
+import com.java2nb.novel.entity.AuthorIncome;
+import com.java2nb.novel.entity.AuthorIncomeDetail;
+import com.java2nb.novel.entity.BookIndex;
+import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.mybatis.dynamic.sql.BasicColumn;
 import org.mybatis.dynamic.sql.delete.DeleteDSLCompleter;
@@ -229,4 +226,26 @@ public interface AuthorMapper {
             .where(id, isEqualTo(record::getId))
         );
     }
+
+    @Select("select author.id from author where author.user_id = #{userId}")
+    long queryAuthorId(Long userId);
+
+    @Select("select count(author_income_detail.id) from author_income_detail " +
+            "where book_id = #{bookId} and user_id = #{userId}")
+    long queryIncomeDetailsNumber(long bookId, Long userId);
+
+
+    List<AuthorIncomeDetail> queryIncomeDetails(long offset, long limit, long bookId, Long userId);
+
+    @Select("select count(author_income.id) from author_income where user_id = #{userId}")
+    long queryIncomeNumber(Long userId);
+
+
+    @Select("select author_income.income_month, author_income.pre_tax_income, author_income.after_tax_income, author_income.pay_status " +
+            "from author_income where user_id = #{userId} " +
+            "order by author_income.income_month " +
+            "limit #{offset}, #{limit}")
+    List<AuthorIncome> queryIncome(long offset, long limit, Long userId);
+
+
 }

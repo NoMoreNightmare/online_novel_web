@@ -51,4 +51,6 @@ public interface MyBookService {
     int queryWithConditionTotal(SearchDataVO searchData);
 
     Result<?> listRank(int rankType, int limit);
+
+    Result<?> listAuthorBookChapter(long curr, long limit, Long bookId, String orderBy, Long userId);
 }

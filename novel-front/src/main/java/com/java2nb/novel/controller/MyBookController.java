@@ -99,4 +99,20 @@ public class MyBookController {
     public Result<?> listRank(int type, int limit) {
         return myBookService.listRank(type, limit);
     }
+
+    @GetMapping("queryIndexList")
+    public Result<?> queryIndexList(Long bookId, long curr, long limit, String orderBy, HttpServletRequest request) {
+        String token = CookieUtil.getCookie(request, "Authorization");
+        if(token == null) {
+            token = request.getHeader("Authorization");
+        }
+
+        if(token != null && jwtTokenUtil.canRefresh(token)) {
+            UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(token);
+            Long userId = userDetails.getId();
+            return myBookService.listAuthorBookChapter(curr, limit, bookId, orderBy, userId);
+        }else{
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+    }
 }

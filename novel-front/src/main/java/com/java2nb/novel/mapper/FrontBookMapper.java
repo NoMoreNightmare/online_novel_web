@@ -1,6 +1,7 @@
 package com.java2nb.novel.mapper;
 
 import com.java2nb.novel.entity.Book;
+import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
 import org.apache.ibatis.annotations.Param;
@@ -41,7 +42,16 @@ public interface FrontBookMapper extends BookMapper {
     long countTotalAuthorBookNumber(Long userId);
 
     @Select("select book.id, book.pic_url, book.book_name, book.cat_name, book.visit_count, book.yesterday_buy, book.last_index_update_time, book.update_time, book.word_count " +
-            "from book where author_id = #{userId} " +
+            "from book where author_id = #{authorId} " +
             "limit #{offset}, #{limit}")
-    List<Book> listAuthorBook(long offset, long limit, Long userId);
+    List<Book> listAuthorBook(long offset, long limit, Long authorId);
+
+    @Select("select count(book_index.id) from book_index where book_index.book_id = #{bookId}")
+    long queryChapterNumber(Long bookId);
+
+    @Select("select book_index.id, book_index.index_name, book_index.update_time, book_index.is_vip " +
+            "from book_index where book_id = #{bookId} " +
+            "order by #{orderBy} " +
+            "limit #{offset}, #{limit}")
+    List<BookIndex> queryChapter(long offset, long limit, String orderBy, Long bookId);
 }

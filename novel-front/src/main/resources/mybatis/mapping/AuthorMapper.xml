@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java2nb.novel.mapper.AuthorMapper">
+    <select id="queryIncomeDetails" resultType="authorIncomeDetail">
+        select author_income_detail.income_date, author_income_detail.income_account, author_income_detail.income_count, author_income_detail.income_number from author_income_detail
+                <where>
+                    <if test="bookId != -1">
+                        and book_id = #{bookId}
+                    </if>
+                    <if test="userId != null">
+                        and user_id = #{userId}
+                    </if>
+                </where>
+                limit #{offset}, #{limit}
+    </select>
+</mapper>

@@ -13,4 +13,6 @@ public interface CrawlBookIndexMapper extends BookIndexMapper {
      * 查询最后的章节
      * */
     BookIndex queryLastIndex(@Param("bookId") Long bookId);
+
+
 }

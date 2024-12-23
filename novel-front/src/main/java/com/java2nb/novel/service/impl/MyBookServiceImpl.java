@@ -410,6 +410,18 @@ public class MyBookServiceImpl implements MyBookService {
         return Result.error();
     }
 
+    @Override
+    public Result<?> listAuthorBookChapter(long curr, long limit, Long bookId, String orderBy, Long userId) {
+        PageBean<BookIndex> pageBean = new PageBean<>(curr, limit);
+
+        long total = bookMapper.queryChapterNumber(bookId);
+        List<BookIndex> list = bookMapper.queryChapter((curr - 1) * limit, limit, orderBy, bookId);
+        pageBean.setList(list);
+        pageBean.setTotal(total);
+
+        return Result.ok(pageBean);
+    }
+
     private Result<?> listCommentRank(String key, int limit) {
         String bookJson = cacheService.get(key);
         ObjectMapper objectMapper = new ObjectMapper();
