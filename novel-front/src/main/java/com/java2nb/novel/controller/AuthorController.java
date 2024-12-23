@@ -22,7 +22,7 @@ import java.util.Date;
 /**
  * @author 11797
  */
-@RequestMapping("author")
+@RequestMapping("myauthor")
 @RestController
 @Slf4j
 @RequiredArgsConstructor
