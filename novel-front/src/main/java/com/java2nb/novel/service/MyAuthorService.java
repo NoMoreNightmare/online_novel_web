@@ -1,6 +1,8 @@
 package com.java2nb.novel.service;
 
 import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.entity.Book;
+import com.java2nb.novel.vo.BookContentVO;
 
 public interface MyAuthorService {
     Result<?> listAuthorBook(long curr, long limit, Long userId);
@@ -12,4 +14,10 @@ public interface MyAuthorService {
 
 
     Result<?> deleteIndex(long indexId, Long userId);
+
+    Result<?> queryIndexContent(long indexId);
+
+    Result<?> updateBookContent(BookContentVO bookContent);
+
+    Result<?> addBook(Book book, Long userId);
 }
