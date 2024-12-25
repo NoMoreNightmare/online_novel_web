@@ -1,6 +1,7 @@
 package com.java2nb.novel.controller.page;
 
 import com.java2nb.novel.core.bean.UserDetails;
+import com.java2nb.novel.core.exception.ChapterNotExistException;
 import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.CookieUtil;
@@ -69,6 +70,9 @@ public class NonRestBookController {
         Book book = bookService.queryBook(bookId);
         //书的目录信息
         BookIndex bookIndex = bookService.queryAboutCurrentIndex(bookId, bookIndexId);
+        if(bookIndex == null) {
+            throw new ChapterNotExistException();
+        }
 
         Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
         Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
