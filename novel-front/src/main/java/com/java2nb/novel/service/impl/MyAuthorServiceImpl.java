@@ -1,6 +1,7 @@
 package com.java2nb.novel.service.impl;
 
 import com.java2nb.novel.controller.page.PageBean;
+import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.entity.*;
 import com.java2nb.novel.entity.Book;
@@ -154,13 +155,40 @@ public class MyAuthorServiceImpl implements MyAuthorService {
         if(bookContent.isPresent()) {
             return Result.ok(bookContent.get().getContent());
         }else{
-            return Result.customError("未查询到内容", 2040);
+            return Result.customError(BookConstant.CONTENT_NOT_EXIST_MSG, BookConstant.CONTENT_NOT_EXIST);
         }
     }
 
     @Transactional
     @Override
     public Result<?> updateBookContent(BookContentVO bookContent) {
+        //修改里面的wordcount
+        int newWordCount = bookContent.getContent().length();
+        SelectStatementProvider selectWordCount = select(BookIndexDynamicSqlSupport.wordCount, BookIndexDynamicSqlSupport.bookId)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .where(BookIndexDynamicSqlSupport.id, isEqualTo(bookContent.getIndexId()))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        BookIndex bookIndex = bookIndexMapper.selectOne(selectWordCount).get();
+        int preWordCount = bookIndex.getWordCount();
+        long bookId = bookContent.getId();
+        int originalTotalWordCount = bookMapper.selectOne(select(wordCount)
+                .from(book)
+                .where(id, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3)).get().getWordCount();
+
+        int finalTotalWordCount = originalTotalWordCount - preWordCount + newWordCount;
+        UpdateStatementProvider updateBookWordCount = update(book)
+                .set(wordCount)
+                .equalTo(finalTotalWordCount)
+                .where(id, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        bookMapper.update(updateBookWordCount);
+
+
         //修改bookcontent
         UpdateStatementProvider updateBookContent = update(BookContentDynamicSqlSupport.bookContent)
                 .set(BookContentDynamicSqlSupport.content)
@@ -171,10 +199,14 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
         bookContentMapper.update(updateBookContent);
 
-        //修改bookindex
+        //修改bookindex里的index name和word count
         UpdateStatementProvider updateBookIndex = update(BookIndexDynamicSqlSupport.bookIndex)
                 .set(BookIndexDynamicSqlSupport.indexName)
                 .equalTo(bookContent.getIndexName())
+                .set(BookIndexDynamicSqlSupport.wordCount)
+                .equalTo(bookContent.getContent().length())
+                .set(BookIndexDynamicSqlSupport.updateTime)
+                .equalTo(new Date())
                 .where(BookIndexDynamicSqlSupport.id, isEqualTo(bookContent.getIndexId()))
                 .build()
                 .render(RenderingStrategy.MYBATIS3);
@@ -185,6 +217,8 @@ public class MyAuthorServiceImpl implements MyAuthorService {
         UpdateStatementProvider updateBookIndexName = update(book)
                 .set(lastIndexName)
                 .equalTo(bookContent.getIndexName())
+                .set(lastIndexUpdateTime)
+                .equalTo(new Date())
                 .where(lastIndexId, isEqualTo(bookContent.getIndexId()))
                 .build()
                 .render(RenderingStrategy.MYBATIS3);
@@ -212,12 +246,13 @@ public class MyAuthorServiceImpl implements MyAuthorService {
             book.setScore(0f);
             book.setBookStatus((byte)0);
             book.setVisitCount(0L);
+            book.setWordCount(0);
 
             book.setAuthorId(author.get().getId());
             book.setAuthorName(author.get().getPenName());
             bookMapper.insert(book);
         }else{
-            return Result.error();
+            return Result.customError(BookConstant.ADD_BOOK_FAIL_MSG, BookConstant.ADD_BOOK_FAIL);
         }
 
         return Result.ok();
