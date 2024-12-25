@@ -18,8 +18,10 @@ import com.java2nb.novel.service.MyBookService;
 import com.java2nb.novel.vo.BookCommentVO;
 import com.java2nb.novel.vo.BookVO;
 import com.java2nb.novel.vo.SearchDataVO;
+import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
+import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -461,5 +463,39 @@ public class MyBookServiceImpl implements MyBookService {
     private Date getTimeTwoMonthAgo(){
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(2);
         return Date.from(oneMonthAgo.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    @Override
+    public void recover(){
+        SelectStatementProvider bookSelect = SqlBuilder.select(BookDynamicSqlSupport.id)
+                .from(BookDynamicSqlSupport.book)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        List<Book> books = bookMapper.selectMany(bookSelect);
+        for (Book book : books) {
+            SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.indexName, BookIndexDynamicSqlSupport.updateTime)
+                    .from(BookIndexDynamicSqlSupport.bookIndex)
+                    .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(book.getId()))
+                    .orderBy(BookIndexDynamicSqlSupport.indexNum.descending())
+                    .limit(1)
+                    .build()
+                    .render(RenderingStrategy.MYBATIS3);
+            Optional<BookIndex> bookIndex = bookIndexMapper.selectOne(select);
+            if(bookIndex.isPresent()){
+                UpdateStatementProvider render = update(BookDynamicSqlSupport.book)
+                        .set(BookDynamicSqlSupport.lastIndexId)
+                        .equalTo(bookIndex.get().getId())
+                        .set(BookDynamicSqlSupport.lastIndexName)
+                        .equalTo(bookIndex.get().getIndexName())
+                        .set(BookDynamicSqlSupport.lastIndexUpdateTime)
+                        .equalTo(bookIndex.get().getUpdateTime())
+                        .where(BookDynamicSqlSupport.id, isEqualTo(book.getId()))
+                        .build()
+                        .render(RenderingStrategy.MYBATIS3);
+                bookMapper.update(render);
+            }
+
+        }
     }
 }

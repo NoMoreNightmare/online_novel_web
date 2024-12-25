@@ -1,5 +1,6 @@
 package com.java2nb.novel.controller;
 
+import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
@@ -80,14 +81,12 @@ public class MyBookController {
 
     @GetMapping("searchByPage")
     public Result<?> searchByPage(SearchDataVO searchData) {
-      List<BookVO> list = myBookService.queryWithCondition(searchData);
-      int total = myBookService.queryWithConditionTotal(searchData);
-      Map<String, Object> map = new HashMap<>();
-      map.put("list", list);
-      map.put("total", total);
-      map.put("pageNum", searchData.getCurr());
-      map.put("pageSize", searchData.getLimit());
-      return Result.ok(map);
+        PageBean<BookVO> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
+        List<BookVO> list = myBookService.queryWithCondition(searchData);
+        int total = myBookService.queryWithConditionTotal(searchData);
+        pageBean.setTotal(total);
+        pageBean.setList(list);
+        return Result.ok(pageBean);
     }
 
     @GetMapping("listBookCategory")
@@ -115,4 +114,10 @@ public class MyBookController {
             return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
         }
     }
+
+//    @GetMapping("recover")
+//    public Result<?> recover() {
+//        myBookService.recover();
+//        return Result.ok();
+//    }
 }

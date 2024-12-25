@@ -20,4 +20,6 @@ public interface MyAuthorService {
     Result<?> updateBookContent(BookContentVO bookContent);
 
     Result<?> addBook(Book book, Long userId);
+
+    Result<?> updateBookPic(Long bookId, String bookPic);
 }

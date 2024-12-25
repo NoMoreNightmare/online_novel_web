@@ -131,6 +131,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                     .equalTo(currLastIndex.get().getIsVip())
                     .set(BookDynamicSqlSupport.wordCount)
                     .equalTo(originBook.get().getWordCount() - currLastIndex.get().getWordCount())
+                    .where(BookDynamicSqlSupport.id, isEqualTo(bookId))
                     .build()
                     .render(RenderingStrategy.MYBATIS3);
 
@@ -221,6 +222,19 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
         return Result.ok();
 
+    }
+
+    @Override
+    public Result<?> updateBookPic(Long bookId, String bookPic) {
+        UpdateStatementProvider updateBookPic = update(book)
+                .set(picUrl)
+                .equalTo(bookPic)
+                .where(id, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        bookMapper.update(updateBookPic);
+        return Result.ok();
     }
 
 

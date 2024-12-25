@@ -35,8 +35,9 @@
 <!--    </select>-->
 
     <select id="searchByPage" parameterType="com.java2nb.novel.vo.SearchDataVO" resultType="com.java2nb.novel.vo.BookVO">
-        select book.id, book.word_count, book.cat_id, book.cat_name,
-               book.book_name, book.last_index_name, book.author_name
+        select id, word_count, cat_id, cat_name,
+               book_name, last_index_name, author_name,
+               last_index_update_time
         from book
         <where>
             <if test="keyword != null and keyword != ''">
