@@ -103,10 +103,16 @@ public class NonRestBookController {
                 //4、可以看
                 needBuy = (records == 0);
 
+                if(!needBuy){
+                    //更新用户的阅读历史
+                    myUserService.updateReadHistory(bookId, userId, bookContent.getId());
+                }
+
             }else{
                 needBuy = true;
             }
         }
+
 
         model.addAttribute("needBuy", needBuy);
         return ThreadLocalUtil.getTemplateDir() + "book/book_content";

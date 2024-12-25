@@ -354,7 +354,7 @@ public class MyBookServiceImpl implements MyBookService {
     @Override
     public BookContent queryBookContent(long bookId, long bookIndexId) {
         //TODO 应该根据bookId和bookIndexId来查询的，但这里只用了bookIndexId，看看能不能改数据库表的DDL
-        SelectStatementProvider select = select(BookContentDynamicSqlSupport.content)
+        SelectStatementProvider select = select(BookContentDynamicSqlSupport.content, BookContentDynamicSqlSupport.id)
                 .from(BookContentDynamicSqlSupport.bookContent)
                 .where(BookContentDynamicSqlSupport.indexId, isEqualTo(bookIndexId))
                 .build()
