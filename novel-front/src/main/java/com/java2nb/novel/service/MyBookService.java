@@ -54,5 +54,5 @@ public interface MyBookService {
 
     Result<?> listAuthorBookChapter(long curr, long limit, Long bookId, String orderBy, Long userId);
 
-    void recover();
+//    void recover();
 }

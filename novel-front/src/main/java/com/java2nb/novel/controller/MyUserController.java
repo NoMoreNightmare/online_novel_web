@@ -182,20 +182,6 @@ public class MyUserController {
         return userService.listUserFeedbackByPage(userId, curr, limit);
     }
 
-//    @PostMapping("updateUserInfo")
-//    public Result<?> updateUserInfo(byte userSex, HttpServletRequest request) {
-//        String token = getToken(request);
-//        if(!jwtTokenUtil.canRefresh(token)){
-//            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
-//        }
-//
-//        UserDetails userDetails = jwtTokenUtil.getUserDetailsFromToken(token);
-//        Long userId = userDetails.getId();
-//        userService.updateUserSex(userId, userSex);
-//        return Result.ok();
-//
-//    }
-
     @PostMapping("updatePassword")
     public Result<?> updatePassword(String oldPassword, String newPassword1, HttpServletRequest request) {
         String token = getToken(request);

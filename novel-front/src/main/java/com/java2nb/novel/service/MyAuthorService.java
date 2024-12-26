@@ -1,6 +1,7 @@
 package com.java2nb.novel.service;
 
 import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.entity.Author;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.vo.BookContentVO;
 
@@ -22,4 +23,8 @@ public interface MyAuthorService {
     Result<?> addBook(Book book, Long userId);
 
     Result<?> updateBookPic(Long bookId, String bookPic);
+
+    String register(Long userId, Author author);
+
+    Result<?> checkPenName(String penName);
 }

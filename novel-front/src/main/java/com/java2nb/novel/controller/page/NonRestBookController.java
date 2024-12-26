@@ -2,16 +2,12 @@ package com.java2nb.novel.controller.page;
 
 import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.exception.ChapterNotExistException;
-import com.java2nb.novel.core.result.LoginAndRegisterConstant;
-import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.CookieUtil;
 import com.java2nb.novel.core.utils.JwtTokenUtil;
 import com.java2nb.novel.core.utils.ThreadLocalUtil;
 import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.entity.BookComment;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
-import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.MyBookService;
 import com.java2nb.novel.service.MyUserService;
 import com.java2nb.novel.vo.BookCommentVO;
@@ -131,6 +127,14 @@ public class NonRestBookController {
         model.addAttribute("bookIndexList", bookIndex);
 
         return ThreadLocalUtil.getTemplateDir() + "book/book_index";
+    }
+
+    @GetMapping("comment-{bookId}.html")
+    public String comment(@PathVariable("bookId") long bookId, Model model) {
+        Book book = bookService.queryBook(bookId);
+        model.addAttribute("book", book);
+        return ThreadLocalUtil.getTemplateDir() + "book/book_comment";
+
     }
 
 

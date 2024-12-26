@@ -283,6 +283,7 @@ public class MyBookServiceImpl implements MyBookService {
         return bookIndexMapper.count(select);
     }
 
+    @Transactional
     @Override
     public Result<?> addVisitCount(Long bookId) {
         boolean res = bookMapper.addVisitCountByOne(bookId);
@@ -465,37 +466,37 @@ public class MyBookServiceImpl implements MyBookService {
         return Date.from(oneMonthAgo.atZone(ZoneId.systemDefault()).toInstant());
     }
 
-    @Override
-    public void recover(){
-        SelectStatementProvider bookSelect = SqlBuilder.select(BookDynamicSqlSupport.id)
-                .from(BookDynamicSqlSupport.book)
-                .build()
-                .render(RenderingStrategy.MYBATIS3);
-
-        List<Book> books = bookMapper.selectMany(bookSelect);
-        for (Book book : books) {
-            SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.indexName, BookIndexDynamicSqlSupport.updateTime)
-                    .from(BookIndexDynamicSqlSupport.bookIndex)
-                    .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(book.getId()))
-                    .orderBy(BookIndexDynamicSqlSupport.indexNum.descending())
-                    .limit(1)
-                    .build()
-                    .render(RenderingStrategy.MYBATIS3);
-            Optional<BookIndex> bookIndex = bookIndexMapper.selectOne(select);
-            if(bookIndex.isPresent()){
-                UpdateStatementProvider render = update(BookDynamicSqlSupport.book)
-                        .set(BookDynamicSqlSupport.lastIndexId)
-                        .equalTo(bookIndex.get().getId())
-                        .set(BookDynamicSqlSupport.lastIndexName)
-                        .equalTo(bookIndex.get().getIndexName())
-                        .set(BookDynamicSqlSupport.lastIndexUpdateTime)
-                        .equalTo(bookIndex.get().getUpdateTime())
-                        .where(BookDynamicSqlSupport.id, isEqualTo(book.getId()))
-                        .build()
-                        .render(RenderingStrategy.MYBATIS3);
-                bookMapper.update(render);
-            }
-
-        }
-    }
+//    @Override
+//    public void recover(){
+//        SelectStatementProvider bookSelect = SqlBuilder.select(BookDynamicSqlSupport.id)
+//                .from(BookDynamicSqlSupport.book)
+//                .build()
+//                .render(RenderingStrategy.MYBATIS3);
+//
+//        List<Book> books = bookMapper.selectMany(bookSelect);
+//        for (Book book : books) {
+//            SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.indexName, BookIndexDynamicSqlSupport.updateTime)
+//                    .from(BookIndexDynamicSqlSupport.bookIndex)
+//                    .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(book.getId()))
+//                    .orderBy(BookIndexDynamicSqlSupport.indexNum.descending())
+//                    .limit(1)
+//                    .build()
+//                    .render(RenderingStrategy.MYBATIS3);
+//            Optional<BookIndex> bookIndex = bookIndexMapper.selectOne(select);
+//            if(bookIndex.isPresent()){
+//                UpdateStatementProvider render = update(BookDynamicSqlSupport.book)
+//                        .set(BookDynamicSqlSupport.lastIndexId)
+//                        .equalTo(bookIndex.get().getId())
+//                        .set(BookDynamicSqlSupport.lastIndexName)
+//                        .equalTo(bookIndex.get().getIndexName())
+//                        .set(BookDynamicSqlSupport.lastIndexUpdateTime)
+//                        .equalTo(bookIndex.get().getUpdateTime())
+//                        .where(BookDynamicSqlSupport.id, isEqualTo(book.getId()))
+//                        .build()
+//                        .render(RenderingStrategy.MYBATIS3);
+//                bookMapper.update(render);
+//            }
+//
+//        }
+//    }
 }

@@ -92,45 +92,45 @@ public class PageController extends BaseController {
         return ThreadLocalUtil.getTemplateDir() + "index";
     }
 
-    /**
-     * 登录页
-     */
-    @RequestMapping("user/login.html")
-    public String login() {
-        return ThreadLocalUtil.getTemplateDir() + "user/login";
-    }
-
-    /**
-     * 注册页
-     */
-    @RequestMapping("user/register.html")
-    public String register() {
-        return ThreadLocalUtil.getTemplateDir() + "user/register";
-    }
-
-    /**
-     * 用户中心页
-     */
-    @RequestMapping("user/userinfo.html")
-    public String userinfo() {
-        return ThreadLocalUtil.getTemplateDir() + "user/userinfo";
-    }
-
-    /**
-     * 我的书架页
-     */
-    @RequestMapping("user/favorites.html")
-    public String favorites() {
-        return ThreadLocalUtil.getTemplateDir() + "user/favorites";
-    }
-
-    /**
-     * 阅读历史页
-     */
-    @RequestMapping("user/read_history.html")
-    public String readHistory() {
-        return ThreadLocalUtil.getTemplateDir() + "user/read_history";
-    }
+//    /**
+//     * 登录页
+//     */
+//    @RequestMapping("user/login.html")
+//    public String login() {
+//        return ThreadLocalUtil.getTemplateDir() + "user/login";
+//    }
+//
+//    /**
+//     * 注册页
+//     */
+//    @RequestMapping("user/register.html")
+//    public String register() {
+//        return ThreadLocalUtil.getTemplateDir() + "user/register";
+//    }
+//
+//    /**
+//     * 用户中心页
+//     */
+//    @RequestMapping("user/userinfo.html")
+//    public String userinfo() {
+//        return ThreadLocalUtil.getTemplateDir() + "user/userinfo";
+//    }
+//
+//    /**
+//     * 我的书架页
+//     */
+//    @RequestMapping("user/favorites.html")
+//    public String favorites() {
+//        return ThreadLocalUtil.getTemplateDir() + "user/favorites";
+//    }
+//
+//    /**
+//     * 阅读历史页
+//     */
+//    @RequestMapping("user/read_history.html")
+//    public String readHistory() {
+//        return ThreadLocalUtil.getTemplateDir() + "user/read_history";
+//    }
 
     /**
      * 充值页
@@ -144,174 +144,173 @@ public class PageController extends BaseController {
     /**
      * 作品页
      */
-    @RequestMapping("book/bookclass.html")
-    public String bookClass() {
-        return "book/bookclass";
-    }
-
-    /**
-     * 排行页
-     */
-    @RequestMapping("book/book_ranking.html")
-    public String bookRank() {
-
-        return ThreadLocalUtil.getTemplateDir() + "book/book_ranking";
-    }
-
-
-    /**
-     * 详情页
-     */
-    @SneakyThrows
+//    @RequestMapping("book/bookclass.html")
+//    public String bookClass() {
+//        return "book/bookclass";
+//    }
+//
+//    /**
+//     * 排行页
+//     */
+//    @RequestMapping("book/book_ranking.html")
+//    public String bookRank() {
+//        return ThreadLocalUtil.getTemplateDir() + "book/book_ranking";
+//    }
+//
+//
+//    /**
+//     * 详情页
+//     */
+//    @SneakyThrows
 //    @RequestMapping("/book/{bookId}.html")
-    public String bookDetail(@PathVariable("bookId") Long bookId, Model model) {
-        //加载小说基本信息线程
-        CompletableFuture<Book> bookCompletableFuture = CompletableFuture.supplyAsync(() -> {
-            //查询书籍
-            Book book = bookService.queryBookDetail(bookId);
-            log.debug("加载小说基本信息线程结束");
-            return book;
-        }, threadPoolExecutor);
-        //加载小说评论列表线程
-        CompletableFuture<PageBean<BookCommentVO>> bookCommentPageBeanCompletableFuture = CompletableFuture.supplyAsync(
-            () -> {
-                PageBean<BookCommentVO> bookCommentVOPageBean = bookService.listCommentByPage(null, bookId, 1, 5);
-                log.debug("加载小说评论列表线程结束");
-                return bookCommentVOPageBean;
-            }, threadPoolExecutor);
-        //加载小说首章信息线程，该线程在加载小说基本信息线程执行完毕后才执行
-        CompletableFuture<Long> firstBookIndexIdCompletableFuture = bookCompletableFuture.thenApplyAsync((book) -> {
-            if (book.getLastIndexId() != null) {
-                //查询首章目录ID
-                Long firstBookIndexId = bookService.queryFirstBookIndexId(bookId);
-                log.debug("加载小说基本信息线程结束");
-                return firstBookIndexId;
-            }
-            return null;
-        }, threadPoolExecutor);
-        //加载随机推荐小说线程，该线程在加载小说基本信息线程执行完毕后才执行
-        CompletableFuture<List<Book>> recBookCompletableFuture = bookCompletableFuture.thenApplyAsync((book) -> {
-            List<Book> books = bookService.listRecBookByCatId(book.getCatId());
-            log.debug("加载随机推荐小说线程结束");
-            return books;
-        }, threadPoolExecutor);
-
-        model.addAttribute("book", bookCompletableFuture.get());
-        model.addAttribute("firstBookIndexId", firstBookIndexIdCompletableFuture.get());
-        model.addAttribute("recBooks", recBookCompletableFuture.get());
-        model.addAttribute("bookCommentPageBean", bookCommentPageBeanCompletableFuture.get());
-
-        return ThreadLocalUtil.getTemplateDir() + "book/book_detail";
-    }
-
-    /**
-     * 目录页
-     */
-    @SneakyThrows
+//    public String bookDetail(@PathVariable("bookId") Long bookId, Model model) {
+//        //加载小说基本信息线程
+//        CompletableFuture<Book> bookCompletableFuture = CompletableFuture.supplyAsync(() -> {
+//            //查询书籍
+//            Book book = bookService.queryBookDetail(bookId);
+//            log.debug("加载小说基本信息线程结束");
+//            return book;
+//        }, threadPoolExecutor);
+//        //加载小说评论列表线程
+//        CompletableFuture<PageBean<BookCommentVO>> bookCommentPageBeanCompletableFuture = CompletableFuture.supplyAsync(
+//            () -> {
+//                PageBean<BookCommentVO> bookCommentVOPageBean = bookService.listCommentByPage(null, bookId, 1, 5);
+//                log.debug("加载小说评论列表线程结束");
+//                return bookCommentVOPageBean;
+//            }, threadPoolExecutor);
+//        //加载小说首章信息线程，该线程在加载小说基本信息线程执行完毕后才执行
+//        CompletableFuture<Long> firstBookIndexIdCompletableFuture = bookCompletableFuture.thenApplyAsync((book) -> {
+//            if (book.getLastIndexId() != null) {
+//                //查询首章目录ID
+//                Long firstBookIndexId = bookService.queryFirstBookIndexId(bookId);
+//                log.debug("加载小说基本信息线程结束");
+//                return firstBookIndexId;
+//            }
+//            return null;
+//        }, threadPoolExecutor);
+//        //加载随机推荐小说线程，该线程在加载小说基本信息线程执行完毕后才执行
+//        CompletableFuture<List<Book>> recBookCompletableFuture = bookCompletableFuture.thenApplyAsync((book) -> {
+//            List<Book> books = bookService.listRecBookByCatId(book.getCatId());
+//            log.debug("加载随机推荐小说线程结束");
+//            return books;
+//        }, threadPoolExecutor);
+//
+//        model.addAttribute("book", bookCompletableFuture.get());
+//        model.addAttribute("firstBookIndexId", firstBookIndexIdCompletableFuture.get());
+//        model.addAttribute("recBooks", recBookCompletableFuture.get());
+//        model.addAttribute("bookCommentPageBean", bookCommentPageBeanCompletableFuture.get());
+//
+//        return ThreadLocalUtil.getTemplateDir() + "book/book_detail";
+//    }
+//
+//    /**
+//     * 目录页
+//     */
+//    @SneakyThrows
 //    @RequestMapping("/book/indexList-{bookId}.html")
-    public String indexList(@PathVariable("bookId") Long bookId, Model model) {
-        Book book = bookService.queryBookDetail(bookId);
-        model.addAttribute("book", book);
-        List<BookIndex> bookIndexList = bookService.queryIndexList(bookId, null, 1, null);
-        model.addAttribute("bookIndexList", bookIndexList);
-        model.addAttribute("bookIndexCount", bookIndexList.size());
-        return ThreadLocalUtil.getTemplateDir() + "book/book_index";
-    }
-
-    /**
-     * 内容页
-     */
-    @SneakyThrows
+//    public String indexList(@PathVariable("bookId") Long bookId, Model model) {
+//        Book book = bookService.queryBookDetail(bookId);
+//        model.addAttribute("book", book);
+//        List<BookIndex> bookIndexList = bookService.queryIndexList(bookId, null, 1, null);
+//        model.addAttribute("bookIndexList", bookIndexList);
+//        model.addAttribute("bookIndexCount", bookIndexList.size());
+//        return ThreadLocalUtil.getTemplateDir() + "book/book_index";
+//    }
+//
+//    /**
+//     * 内容页
+//     */
+//    @SneakyThrows
 //    @RequestMapping("/book/{bookId}/{bookIndexId}.html")
-    public String bookContent(@PathVariable("bookId") Long bookId, @PathVariable("bookIndexId") Long bookIndexId,
-        HttpServletRequest request, Model model) {
-        //加载小说基本信息线程
-        CompletableFuture<Book> bookCompletableFuture = CompletableFuture.supplyAsync(() -> {
-            //查询书籍
-            Book book = bookService.queryBookDetail(bookId);
-            log.debug("加载小说基本信息线程结束");
-            return book;
-        }, threadPoolExecutor);
-
-        //加载小说章节信息线程
-        CompletableFuture<BookIndex> bookIndexCompletableFuture = CompletableFuture.supplyAsync(() -> {
-            //查询目录
-            BookIndex bookIndex = bookService.queryBookIndex(bookIndexId);
-            log.debug("加载小说章节信息线程结束");
-            return bookIndex;
-        }, threadPoolExecutor);
-
-        //加载小说上一章节信息线程，该线程在加载小说章节信息线程执行完毕后才执行
-        CompletableFuture<Long> preBookIndexIdCompletableFuture = bookIndexCompletableFuture.thenApplyAsync(
-            (bookIndex) -> {
-                //查询上一章节目录ID
-                Long preBookIndexId = bookService.queryPreBookIndexId(bookId, bookIndex.getIndexNum());
-                log.debug("加载小说上一章节信息线程结束");
-                return preBookIndexId;
-            }, threadPoolExecutor);
-
-        //加载小说下一章节信息线程，该线程在加载小说章节信息线程执行完毕后才执行
-        CompletableFuture<Long> nextBookIndexIdCompletableFuture = bookIndexCompletableFuture.thenApplyAsync(
-            (bookIndex) -> {
-                //查询下一章目录ID
-                Long nextBookIndexId = bookService.queryNextBookIndexId(bookId, bookIndex.getIndexNum());
-                log.debug("加载小说下一章节信息线程结束");
-                return nextBookIndexId;
-            }, threadPoolExecutor);
-
-        //加载小说内容信息线程，该线程在加载小说章节信息线程执行完毕后才执行
-        CompletableFuture<BookContent> bookContentCompletableFuture = bookIndexCompletableFuture.thenApplyAsync(
-            (bookIndex) -> {
-                //查询内容
-                BookContent bookContent = bookContentServiceMap.get(bookIndex.getStorageType())
-                    .queryBookContent(bookId, bookIndexId);
-                log.debug("加载小说内容信息线程结束");
-                return bookContent;
-            }, threadPoolExecutor);
-
-        //判断用户是否需要购买线程，该线程在加载小说章节信息线程执行完毕后才执行
-        CompletableFuture<Boolean> needBuyCompletableFuture = bookIndexCompletableFuture.thenApplyAsync((bookIndex) -> {
-            //判断该目录是否收费
-            if (bookIndex.getIsVip() != null && bookIndex.getIsVip() == 1) {
-                //收费
-                UserDetails user = getUserDetails(request);
-                if (user == null) {
-                    //未登录，需要购买
-                    return true;
-                }
-                //判断用户是否购买过该目录
-                boolean isBuy = userService.queryIsBuyBookIndex(user.getId(), bookIndexId);
-                if (!isBuy) {
-                    //没有购买过，需要购买
-                    return true;
-                }
-            }
-
-            log.debug("判断用户是否需要购买线程结束");
-            return false;
-
-        }, threadPoolExecutor);
-
-        model.addAttribute("book", bookCompletableFuture.get());
-        model.addAttribute("bookIndex", bookIndexCompletableFuture.get());
-        model.addAttribute("preBookIndexId", preBookIndexIdCompletableFuture.get());
-        model.addAttribute("nextBookIndexId", nextBookIndexIdCompletableFuture.get());
-        model.addAttribute("bookContent", bookContentCompletableFuture.get());
-        model.addAttribute("needBuy", needBuyCompletableFuture.get());
-
-        return ThreadLocalUtil.getTemplateDir() + "book/book_content";
-    }
-
-    /**
-     * 评论页面
-     */
-    @RequestMapping("/book/comment-{bookId}.html")
-    public String commentList(@PathVariable("bookId") Long bookId, Model model) {
-        //查询书籍
-        Book book = bookService.queryBookDetail(bookId);
-        model.addAttribute("book", book);
-        return "book/book_comment";
-    }
+//    public String bookContent(@PathVariable("bookId") Long bookId, @PathVariable("bookIndexId") Long bookIndexId,
+//        HttpServletRequest request, Model model) {
+//        //加载小说基本信息线程
+//        CompletableFuture<Book> bookCompletableFuture = CompletableFuture.supplyAsync(() -> {
+//            //查询书籍
+//            Book book = bookService.queryBookDetail(bookId);
+//            log.debug("加载小说基本信息线程结束");
+//            return book;
+//        }, threadPoolExecutor);
+//
+//        //加载小说章节信息线程
+//        CompletableFuture<BookIndex> bookIndexCompletableFuture = CompletableFuture.supplyAsync(() -> {
+//            //查询目录
+//            BookIndex bookIndex = bookService.queryBookIndex(bookIndexId);
+//            log.debug("加载小说章节信息线程结束");
+//            return bookIndex;
+//        }, threadPoolExecutor);
+//
+//        //加载小说上一章节信息线程，该线程在加载小说章节信息线程执行完毕后才执行
+//        CompletableFuture<Long> preBookIndexIdCompletableFuture = bookIndexCompletableFuture.thenApplyAsync(
+//            (bookIndex) -> {
+//                //查询上一章节目录ID
+//                Long preBookIndexId = bookService.queryPreBookIndexId(bookId, bookIndex.getIndexNum());
+//                log.debug("加载小说上一章节信息线程结束");
+//                return preBookIndexId;
+//            }, threadPoolExecutor);
+//
+//        //加载小说下一章节信息线程，该线程在加载小说章节信息线程执行完毕后才执行
+//        CompletableFuture<Long> nextBookIndexIdCompletableFuture = bookIndexCompletableFuture.thenApplyAsync(
+//            (bookIndex) -> {
+//                //查询下一章目录ID
+//                Long nextBookIndexId = bookService.queryNextBookIndexId(bookId, bookIndex.getIndexNum());
+//                log.debug("加载小说下一章节信息线程结束");
+//                return nextBookIndexId;
+//            }, threadPoolExecutor);
+//
+//        //加载小说内容信息线程，该线程在加载小说章节信息线程执行完毕后才执行
+//        CompletableFuture<BookContent> bookContentCompletableFuture = bookIndexCompletableFuture.thenApplyAsync(
+//            (bookIndex) -> {
+//                //查询内容
+//                BookContent bookContent = bookContentServiceMap.get(bookIndex.getStorageType())
+//                    .queryBookContent(bookId, bookIndexId);
+//                log.debug("加载小说内容信息线程结束");
+//                return bookContent;
+//            }, threadPoolExecutor);
+//
+//        //判断用户是否需要购买线程，该线程在加载小说章节信息线程执行完毕后才执行
+//        CompletableFuture<Boolean> needBuyCompletableFuture = bookIndexCompletableFuture.thenApplyAsync((bookIndex) -> {
+//            //判断该目录是否收费
+//            if (bookIndex.getIsVip() != null && bookIndex.getIsVip() == 1) {
+//                //收费
+//                UserDetails user = getUserDetails(request);
+//                if (user == null) {
+//                    //未登录，需要购买
+//                    return true;
+//                }
+//                //判断用户是否购买过该目录
+//                boolean isBuy = userService.queryIsBuyBookIndex(user.getId(), bookIndexId);
+//                if (!isBuy) {
+//                    //没有购买过，需要购买
+//                    return true;
+//                }
+//            }
+//
+//            log.debug("判断用户是否需要购买线程结束");
+//            return false;
+//
+//        }, threadPoolExecutor);
+//
+//        model.addAttribute("book", bookCompletableFuture.get());
+//        model.addAttribute("bookIndex", bookIndexCompletableFuture.get());
+//        model.addAttribute("preBookIndexId", preBookIndexIdCompletableFuture.get());
+//        model.addAttribute("nextBookIndexId", nextBookIndexIdCompletableFuture.get());
+//        model.addAttribute("bookContent", bookContentCompletableFuture.get());
+//        model.addAttribute("needBuy", needBuyCompletableFuture.get());
+//
+//        return ThreadLocalUtil.getTemplateDir() + "book/book_content";
+//    }
+//
+//    /**
+//     * 评论页面
+//     */
+//    @RequestMapping("/book/comment-{bookId}.html")
+//    public String commentList(@PathVariable("bookId") Long bookId, Model model) {
+//        //查询书籍
+//        Book book = bookService.queryBookDetail(bookId);
+//        model.addAttribute("book", book);
+//        return "book/book_comment";
+//    }
 
     /**
      * 新闻内容页面
@@ -328,7 +327,7 @@ public class PageController extends BaseController {
     /**
      * 作者注册页面
      */
-    @RequestMapping("author/register.html")
+//    @RequestMapping("author/register.html")
     public String authorRegister(Author author, HttpServletRequest request, Model model) {
         UserDetails user = getUserDetails(request);
         if (user == null) {

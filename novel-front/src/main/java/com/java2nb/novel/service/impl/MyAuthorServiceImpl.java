@@ -40,6 +40,8 @@ public class MyAuthorServiceImpl implements MyAuthorService {
     private BookIndexMapper bookIndexMapper;
     @Autowired
     private BookContentMapper bookContentMapper;
+    @Autowired
+    private AuthorCodeMapper authorCodeMapper;
 
     @Override
     public Result<?> listAuthorBook(long curr, long limit, Long userId) {
@@ -270,6 +272,63 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
         bookMapper.update(updateBookPic);
         return Result.ok();
+    }
+
+    @Override
+    public String register(Long userId, Author author) {
+        String inviteCode = author.getInviteCode();
+        //判断invite code是否存在，以及是否过期
+        SelectStatementProvider selectValidityTime = select(AuthorCodeDynamicSqlSupport.validityTime, AuthorCodeDynamicSqlSupport.isUse)
+                .from(AuthorCodeDynamicSqlSupport.authorCode)
+                .where(AuthorCodeDynamicSqlSupport.inviteCode, isEqualTo(inviteCode))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        Optional<AuthorCode> authorCode = authorCodeMapper.selectOne(selectValidityTime);
+        if(authorCode.isPresent()) {
+            AuthorCode code = authorCode.get();
+            Date validityTime = code.getValidityTime();
+            Date now = new Date();
+            boolean isBefore = now.before(validityTime);
+            if(isBefore) {
+                if(code.getIsUse() == 0){
+                    UpdateStatementProvider updateAuthorCode = update(AuthorCodeDynamicSqlSupport.authorCode)
+                            .set(AuthorCodeDynamicSqlSupport.isUse)
+                            .equalTo((byte) 1)
+                            .where(AuthorCodeDynamicSqlSupport.inviteCode, isEqualTo(inviteCode))
+                            .build()
+                            .render(RenderingStrategy.MYBATIS3);
+                    authorCodeMapper.update(updateAuthorCode);
+                }
+                author.setUserId(userId);
+                author.setCreateTime(new Date());
+                authorMapper.insert(author);
+                return null;
+            }else{
+                return "邀请码已过期";
+            }
+
+        }else{
+            return "邀请码不存在";
+        }
+
+
+    }
+
+    @Override
+    public Result<?> checkPenName(String penName) {
+        SelectStatementProvider countPenName = select(count(AuthorDynamicSqlSupport.id))
+                .from(AuthorDynamicSqlSupport.author)
+                .where(AuthorDynamicSqlSupport.penName, isEqualTo(penName))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        long count = authorMapper.count(countPenName);
+        if(count > 0) {
+            return Result.ok(true);
+        }else{
+            return Result.ok(false);
+        }
+
     }
 
 

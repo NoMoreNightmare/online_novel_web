@@ -19,6 +19,7 @@ public class PictureUtil {
         boolean delete = file.delete();
     }
 
+    //TODO 这里可以把路径改成oss的路径
     public static String createFile(MultipartFile file,String picSavePath) {
         String directory = generateDirectoryPath(picSavePath);
 
