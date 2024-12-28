@@ -79,7 +79,7 @@ public class PageController extends BaseController {
      * 首页
      */
     @SneakyThrows
-    @RequestMapping(path = {"/", "/index", "/index.html"})
+//    @RequestMapping(path = {"/", "/index", "/index.html"})
     public String index(Model model) {
         //加载小说首页小说基本信息线程
         CompletableFuture<Map<Byte, List<BookSettingVO>>> bookCompletableFuture = CompletableFuture.supplyAsync(

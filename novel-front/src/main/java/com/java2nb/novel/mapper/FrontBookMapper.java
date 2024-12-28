@@ -53,4 +53,5 @@ public interface FrontBookMapper extends BookMapper {
             "order by #{orderBy} " +
             "limit #{offset}, #{limit}")
     List<BookIndex> queryChapter(long offset, long limit, String orderBy, Long bookId);
+
 }

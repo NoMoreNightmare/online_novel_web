@@ -8,20 +8,18 @@ import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.core.utils.Constants;
+import com.java2nb.novel.entity.*;
 import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.entity.BookCategory;
-import com.java2nb.novel.entity.BookContent;
-import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.MyBookService;
-import com.java2nb.novel.vo.BookCommentVO;
-import com.java2nb.novel.vo.BookVO;
-import com.java2nb.novel.vo.SearchDataVO;
-import org.mybatis.dynamic.sql.SqlBuilder;
+import com.java2nb.novel.vo.*;
+import lombok.SneakyThrows;
+import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
-import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +28,12 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.stream.Collectors;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.id;
+import static com.java2nb.novel.mapper.BookSettingDynamicSqlSupport.bookSetting;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
@@ -42,6 +42,9 @@ import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 public class MyBookServiceImpl implements MyBookService {
     @Autowired
     FrontBookMapper bookMapper;
+
+    @Autowired
+    FrontBookSettingMapper bookSettingMapper;
 
     @Resource
     CacheService cacheService;
@@ -425,7 +428,69 @@ public class MyBookServiceImpl implements MyBookService {
         return Result.ok(pageBean);
     }
 
-    private Result<?> listCommentRank(String key, int limit) {
+    @SneakyThrows
+    @Override
+    public Map<Byte, List<BookSettingVO>> listBookSettingVO() {
+        String result = cacheService.get(CacheKey.INDEX_BOOK_SETTINGS_KEY);
+        if (result == null || result.length() < Constants.OBJECT_JSON_CACHE_EXIST_LENGTH) {
+            List<BookSettingVO> list = bookSettingMapper.listVO();
+            if (list.size() == 0) {
+                //如果首页小说没有被设置，则初始化首页小说设置
+                list = initIndexBookSetting();
+            }
+            result = new ObjectMapper().writeValueAsString(
+                    list.stream().collect(Collectors.groupingBy(BookSettingVO::getType)));
+            cacheService.set(CacheKey.INDEX_BOOK_SETTINGS_KEY, result);
+        }
+        return new ObjectMapper().readValue(result, Map.class);
+    }
+
+    private List<BookSettingVO> initIndexBookSetting() {
+        Date currentDate = new Date();
+        List<Book> books = bookMapper.selectIdsByScoreAndRandom(Constants.INDEX_BOOK_SETTING_NUM);
+        if (books.size() == Constants.INDEX_BOOK_SETTING_NUM) {
+            List<BookSetting> bookSettingList = new ArrayList<>(Constants.INDEX_BOOK_SETTING_NUM);
+            List<BookSettingVO> bookSettingVOList = new ArrayList<>(Constants.INDEX_BOOK_SETTING_NUM);
+            for (int i = 0; i < books.size(); i++) {
+                Book book = books.get(i);
+                byte type;
+                if (i < 4) {
+                    type = 0;
+                } else if (i < 14) {
+                    type = 1;
+                } else if (i < 19) {
+                    type = 2;
+                } else if (i < 25) {
+                    type = 3;
+                } else {
+                    type = 4;
+                }
+                BookSettingVO bookSettingVO = new BookSettingVO();
+                BookSetting bookSetting = new BookSetting();
+                bookSetting.setType(type);
+                bookSetting.setSort((byte) i);
+                bookSetting.setBookId(book.getId());
+                bookSetting.setCreateTime(currentDate);
+                bookSetting.setUpdateTime(currentDate);
+                bookSettingList.add(bookSetting);
+
+                BeanUtils.copyProperties(book, bookSettingVO);
+                BeanUtils.copyProperties(bookSetting, bookSettingVO);
+                bookSettingVOList.add(bookSettingVO);
+            }
+
+            bookSettingMapper.delete(deleteFrom(bookSetting).build()
+                    .render(RenderingStrategies.MYBATIS3));
+            bookSettingMapper.insertMultiple(bookSettingList);
+
+            return bookSettingVOList;
+        }
+        return new ArrayList<>(0);
+    }
+
+
+    @Override
+    public Result<?> listCommentRank(String key, int limit) {
         String bookJson = cacheService.get(key);
         ObjectMapper objectMapper = new ObjectMapper();
         List<Book> books = null;

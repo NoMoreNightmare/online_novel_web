@@ -6,10 +6,12 @@ import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.vo.BookCommentVO;
+import com.java2nb.novel.vo.BookSettingVO;
 import com.java2nb.novel.vo.BookVO;
 import com.java2nb.novel.vo.SearchDataVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MyBookService {
     Result<?> listClickRank();
@@ -53,6 +55,10 @@ public interface MyBookService {
     Result<?> listRank(int rankType, int limit);
 
     Result<?> listAuthorBookChapter(long curr, long limit, Long bookId, String orderBy, Long userId);
+
+    Map<Byte, List<BookSettingVO>> listBookSettingVO();
+
+    Result<?> listCommentRank(String key, int limit);
 
 //    void recover();
 }
