@@ -16,22 +16,32 @@ import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.MyBookService;
 import com.java2nb.novel.vo.*;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortOrder;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.stream.Collectors;
 
-import static com.java2nb.novel.core.result.CaffieineConstant.*;
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.id;
@@ -40,6 +50,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
 
+@Slf4j
 @Service
 public class MyBookServiceImpl implements MyBookService {
     @Autowired
@@ -52,6 +63,9 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Resource
     CacheService cacheService;
+
+    @Resource
+    private RestHighLevelClient client;
 
     @Autowired
     private FrontBookCommentMapper bookCommentMapper;
@@ -599,6 +613,101 @@ public class MyBookServiceImpl implements MyBookService {
         bookCacheService.putIndexByKey(key, bookJson);
 
         return Result.ok(books);
+    }
+
+    @Override
+    public void queryUsingElasticSearch(PageBean<BookDoc> pageBean, SearchDataVO searchData) {
+        SearchRequest searchRequest = new SearchRequest("book");
+
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //关键字
+        boolQueryBuilder.must(QueryBuilders.matchQuery("keywordSearch", searchData.getKeyword()));
+
+        //是否完结
+        if(searchData.getBookStatus() != null){
+            boolQueryBuilder.must(QueryBuilders.matchQuery("bookStatus", searchData.getBookStatus()));
+        }
+
+        //字数限制
+        if(searchData.getWordCountMax() != null){
+            int min = 0;
+            if(searchData.getWordCountMin() != null){
+                min = searchData.getWordCountMin();
+            }
+            RangeQueryBuilder wordCount = QueryBuilders.rangeQuery("wordCount").from(min).to(searchData.getWordCountMax());
+            boolQueryBuilder.must(wordCount);
+        }else{
+            int min = 0;
+            if(searchData.getWordCountMin() != null){
+                min = searchData.getWordCountMin();
+                RangeQueryBuilder wordCount = QueryBuilders.rangeQuery("wordCount").from(min);
+                boolQueryBuilder.must(wordCount);
+            }
+        }
+
+        //更新时间限制
+        if(searchData.getUpdatePeriod() != null){
+            Calendar calendar = Calendar.getInstance();
+
+            // 减去7天
+            calendar.add(Calendar.DAY_OF_MONTH, (int) -searchData.getUpdatePeriod());
+            Date date  = calendar.getTime();
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("updateTime").from(date));
+        }
+
+        searchRequest.source().query(boolQueryBuilder);
+
+        //排序
+        String sort = searchData.getSort();
+        if(sort != null){
+            switch (sort) {
+                case "last_index_update_time":
+                    searchRequest.source().sort("updateTime", SortOrder.DESC);
+                    break;
+                case "word_count":
+                    searchRequest.source().sort("wordCount", SortOrder.DESC);
+                    break;
+                case "visit_count":
+                    searchRequest.source().sort("visitCount", SortOrder.DESC);
+                    break;
+            }
+        }
+
+        //分页
+        searchData.calculateOffset();
+        int offset = searchData.getOffset();
+        int size = searchData.getLimit();
+        searchRequest.source().from(offset).size(size);
+
+        //发送请求
+        try {
+            SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+            //解析响应
+            handleResponse(response, pageBean);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void handleResponse(SearchResponse response, PageBean<BookDoc> pageBean) {
+        SearchHits searchHits = response.getHits();
+        long total = searchHits.getTotalHits() == null ? 0 : searchHits.getTotalHits().value;
+        SearchHit[] hits = searchHits.getHits();
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<BookDoc> list = new ArrayList<>();
+
+        for (SearchHit hit : hits) {
+            String json = hit.getSourceAsString();
+            try {
+                BookDoc bookDoc = objectMapper.readValue(json, new TypeReference<BookDoc>() {});
+                list.add(bookDoc);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        pageBean.setList(list);
+        pageBean.setTotal(total);
     }
 
     private Date getTimeTwoMonthAgo(){

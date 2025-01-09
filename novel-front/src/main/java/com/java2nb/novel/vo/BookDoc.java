@@ -2,10 +2,12 @@ package com.java2nb.novel.vo;
 
 import com.java2nb.novel.entity.Book;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
+@NoArgsConstructor
 public class BookDoc {
     private Long id;
     private String bookName;

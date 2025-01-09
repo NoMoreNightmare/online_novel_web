@@ -85,7 +85,7 @@ public class BookTest {
 
     @Test
     public void initializeBookIndex() throws IOException {
-        SelectStatementProvider selectAll = select(id, catId, catName, bookName, lastIndexId, authorName, wordCount, updateTime, visitCount, bookStatus, bookDesc)
+        SelectStatementProvider selectAll = select(id, catId, catName, bookName, lastIndexId, lastIndexName, authorName, wordCount, updateTime, visitCount, bookStatus, bookDesc)
                 .from(book)
                 .build()
                 .render(RenderingStrategy.MYBATIS3);

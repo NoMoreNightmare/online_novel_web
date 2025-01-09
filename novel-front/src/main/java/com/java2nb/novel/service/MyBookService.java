@@ -5,10 +5,7 @@ import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
-import com.java2nb.novel.vo.BookCommentVO;
-import com.java2nb.novel.vo.BookSettingVO;
-import com.java2nb.novel.vo.BookVO;
-import com.java2nb.novel.vo.SearchDataVO;
+import com.java2nb.novel.vo.*;
 
 import java.util.List;
 import java.util.Map;
@@ -59,6 +56,8 @@ public interface MyBookService {
     Map<Byte, List<BookSettingVO>> listBookSettingVO();
 
     Result<?> listCommentRank(String key, int limit);
+
+    void queryUsingElasticSearch(PageBean<BookDoc> pageBean, SearchDataVO searchData);
 
 //    void recover();
 }

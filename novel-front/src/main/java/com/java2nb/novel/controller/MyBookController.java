@@ -8,6 +8,7 @@ import com.java2nb.novel.core.utils.CookieUtil;
 import com.java2nb.novel.core.utils.JwtTokenUtil;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.vo.BookDoc;
 import com.java2nb.novel.vo.BookVO;
 import com.java2nb.novel.vo.SearchDataVO;
 import lombok.extern.slf4j.Slf4j;
@@ -82,12 +83,20 @@ public class MyBookController {
 
     @GetMapping("searchByPage")
     public Result<?> searchByPage(SearchDataVO searchData) {
-        PageBean<BookVO> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
-        List<BookVO> list = myBookService.queryWithCondition(searchData);
-        int total = myBookService.queryWithConditionTotal(searchData);
-        pageBean.setTotal(total);
-        pageBean.setList(list);
-        return Result.ok(pageBean);
+        if(searchData.getKeyword() != null && !searchData.getKeyword().isEmpty()) {
+            PageBean<BookDoc> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
+            myBookService.queryUsingElasticSearch(pageBean, searchData);
+            return Result.ok(pageBean);
+        }else{
+            PageBean<BookVO> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
+            List<BookVO> list = myBookService.queryWithCondition(searchData);
+            int total = myBookService.queryWithConditionTotal(searchData);
+            pageBean.setTotal(total);
+            pageBean.setList(list);
+            return Result.ok(pageBean);
+        }
+
+
     }
 
     @GetMapping("listBookCategory")
