@@ -21,6 +21,7 @@ import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.stream.Collectors;
 
+import static com.java2nb.novel.core.result.CaffieineConstant.*;
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.id;
@@ -45,10 +47,11 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Autowired
     FrontBookSettingMapper bookSettingMapper;
+    @Autowired
+    private BookCacheServiceImpl bookCacheService;
 
     @Resource
     CacheService cacheService;
-
 
     @Autowired
     private FrontBookCommentMapper bookCommentMapper;
@@ -68,10 +71,32 @@ public class MyBookServiceImpl implements MyBookService {
         return listClickRank(CacheKey.INDEX_CLICK_RANK_BOOK_KEY, 10);
     }
 
-    private Result<?> listClickRank(String key, int limit){
-        String bookJson = cacheService.get(key);
+    private Result<?> queryLocalCache(String key){
+        String bookJson = bookCacheService.getIndexByKey(key);
         ObjectMapper objectMapper = new ObjectMapper();
         List<Book> books = null;
+        if(bookJson != null){
+            try {
+                books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});
+            } catch (JsonProcessingException e) {
+                return Result.customError("反序列化错误", 2021);
+            }
+            return Result.ok(books);
+        }
+
+        return null;
+    }
+
+    private Result<?> listClickRank(String key, int limit){
+        Result<?> result = queryLocalCache(key);
+        if(result != null){
+            return result;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Book> books = null;
+        String bookJson = cacheService.get(key);
+
 
 
         if(bookJson == null || bookJson.isEmpty()) {
@@ -99,7 +124,7 @@ public class MyBookServiceImpl implements MyBookService {
             }
         }
 
-
+        bookCacheService.putIndexByKey(key, bookJson);
 
         return Result.ok(books);
     }
@@ -110,6 +135,11 @@ public class MyBookServiceImpl implements MyBookService {
     }
 
     private Result<?> listNewRank(String key, int limit){
+        Result<?> result = queryLocalCache(key);
+        if(result != null){
+            return result;
+        }
+
         String booksJson = cacheService.get(key);
         ObjectMapper objectMapper = new ObjectMapper();
         List<Book> books = null;
@@ -141,7 +171,7 @@ public class MyBookServiceImpl implements MyBookService {
             }
         }
 
-
+        bookCacheService.putIndexByKey(key, booksJson);
 
         return Result.ok(books);
     }
@@ -152,6 +182,11 @@ public class MyBookServiceImpl implements MyBookService {
     }
 
     private Result<?> listUpdateRank(String key, int limit){
+        Result<?> result = queryLocalCache(key);
+        if(result != null){
+            return result;
+        }
+
         String booksJson = cacheService.get(key);
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -186,20 +221,38 @@ public class MyBookServiceImpl implements MyBookService {
 
         }
 
+        bookCacheService.putIndexByKey(key, booksJson);
 
         return Result.ok(books);
     }
 
     @Override
     public Book queryBook(long bookId) {
+        String bookJson = bookCacheService.getBookByKey(String.valueOf(bookId));
+        ObjectMapper objectMapper = new ObjectMapper();
+        if(bookJson != null && !bookJson.isEmpty()) {
+            try {
+                return objectMapper.readValue(bookJson, new TypeReference<Book>() {});
+            } catch (JsonProcessingException e) {
+                return null;
+            }
+        }
         SelectStatementProvider select = select(id, bookName, catId, catName, picUrl, authorName, bookStatus, visitCount, wordCount, bookDesc, lastIndexId, lastIndexUpdateTime, lastIndexName)
                 .from(book)
                 .where(id, isEqualTo(bookId))
                 .build()
                 .render(RenderingStrategy.MYBATIS3);
 
-        Optional<Book> book = bookMapper.selectOne(select);
-        return book.get();
+
+
+        Book book = bookMapper.selectOne(select).get();
+        try {
+            bookJson = objectMapper.writeValueAsString(book);
+            bookCacheService.putBookByKey(String.valueOf(bookId), bookJson);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+        return book;
     }
 
     @Override
@@ -237,7 +290,7 @@ public class MyBookServiceImpl implements MyBookService {
     }
 
     @Override
-    public Long queryBookFirstChapter(long id) {
+    public Long queryBookLastChapter(long id) {
         SelectStatementProvider select = select(BookIndexDynamicSqlSupport.id)
                 .from(BookIndexDynamicSqlSupport.bookIndex)
                 .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(id))
@@ -357,6 +410,17 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Override
     public BookContent queryBookContent(long bookId, long bookIndexId) {
+        String bookContentJson = bookCacheService.getBookContentByKey(String.valueOf(bookIndexId));
+        ObjectMapper objectMapper = new ObjectMapper();
+        if(bookContentJson != null && !bookContentJson.isEmpty()){
+            try {
+                return objectMapper.readValue(bookContentJson, new TypeReference<BookContent>() {
+                });
+            } catch (JsonProcessingException e) {
+                return null;
+            }
+        }
+
         //TODO 应该根据bookId和bookIndexId来查询的，但这里只用了bookIndexId，看看能不能改数据库表的DDL
         SelectStatementProvider select = select(BookContentDynamicSqlSupport.content, BookContentDynamicSqlSupport.id)
                 .from(BookContentDynamicSqlSupport.bookContent)
@@ -365,6 +429,12 @@ public class MyBookServiceImpl implements MyBookService {
                 .render(RenderingStrategy.MYBATIS3);
 
         Optional<BookContent> bookContent = bookContentMapper.selectOne(select);
+        try {
+            bookContentJson = objectMapper.writeValueAsString(bookContent.get());
+            bookCacheService.putBookContentByKey(String.valueOf(bookIndexId), bookContentJson);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
         return bookContent.orElse(null);
 
     }
@@ -491,6 +561,11 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Override
     public Result<?> listCommentRank(String key, int limit) {
+        Result<?> result = queryLocalCache(key);
+        if(result != null){
+            return result;
+        }
+
         String bookJson = cacheService.get(key);
         ObjectMapper objectMapper = new ObjectMapper();
         List<Book> books = null;
@@ -521,7 +596,7 @@ public class MyBookServiceImpl implements MyBookService {
             }
         }
 
-
+        bookCacheService.putIndexByKey(key, bookJson);
 
         return Result.ok(books);
     }

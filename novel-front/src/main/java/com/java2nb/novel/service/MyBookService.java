@@ -26,7 +26,7 @@ public interface MyBookService {
 
     List<Book> queryRecommendedBooks(long id);
 
-    Long queryBookFirstChapter(long id);
+    Long queryBookLastChapter(long id);
 
     Result<?> queryBookIndexAbout(Long bookId, Long lastBookIndexId);
 

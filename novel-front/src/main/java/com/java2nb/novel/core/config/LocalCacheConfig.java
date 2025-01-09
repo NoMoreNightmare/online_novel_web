@@ -30,7 +30,7 @@ public class LocalCacheConfig {
         //book的caffeine
         Caffeine<Object, Object> bookCaffeine = Caffeine.newBuilder().recordStats().maximumSize(BOOK_KEY_SIZE);
         bookCaffeine.expireAfterWrite(Duration.ofMinutes(BOOK_KEY_TTL));
-        caches.add(new CaffeineCache(INDEX_KEY, bookCaffeine.build()));
+        caches.add(new CaffeineCache(BOOK_KEY, bookCaffeine.build()));
 
         //book content的caffeine
         Caffeine<Object, Object> contentCaffeine = Caffeine.newBuilder().recordStats().maximumSize(BOOK_CONTENT_KEY_SIZE);

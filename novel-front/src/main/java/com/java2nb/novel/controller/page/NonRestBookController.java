@@ -48,7 +48,7 @@ public class NonRestBookController {
         List<Book> recBooks = bookService.queryRecommendedBooks(id);
 
         //查询这个book的首章节信息
-        Long chapterId = bookService.queryBookFirstChapter(id);
+        Long chapterId = bookService.queryBookLastChapter(id);
 
         model.addAttribute("book", book);
         model.addAttribute("bookCommentPageBean", bookComment);
