@@ -41,7 +41,8 @@
         from book
         <where>
             <if test="keyword != null and keyword != ''">
-                and book.book_name like concat('%', #{keyword}, '%')
+                and book.book_name like concat('%', #{keyword}, '%') or book.author_name like concat('%', #{keyword}, '%')
+                or book.cat_name like concat('%', #{keyword},'%') or book.book_desc like concat('%', #{keyword}, '%')
             </if>
             <if test="workDirection != null">
                 and book.work_direction = #{workDirection}

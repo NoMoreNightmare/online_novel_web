@@ -137,5 +137,15 @@ public class NonRestBookController {
 
     }
 
+    @RequestMapping("bookclass.html")
+    public String bookClass() {
+        return "book/bookclass";
+    }
+
+    @RequestMapping("book_ranking.html")
+    public String bookRank() {
+        return "book/book_ranking";
+    }
+
 
 }
