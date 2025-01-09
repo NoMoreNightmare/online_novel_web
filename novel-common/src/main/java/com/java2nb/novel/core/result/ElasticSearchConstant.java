@@ -48,7 +48,7 @@ public class ElasticSearchConstant {
             "      },\n" +
             "      \"keywordSearch\": {\n" +
             "        \"type\": \"text\",\n" +
-            "        \"analyzer\": \"ik_max_word\"\n" +
+            "        \"analyzer\": \"ik_smart\"\n" +
             "      }\n" +
             "    }\n" +
             "  }\n" +

@@ -1,11 +1,15 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java2nb.novel.FrontNovelApplication;
 import com.java2nb.novel.core.result.ElasticSearchConstant;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.vo.BookDoc;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -28,16 +32,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 @SpringBootTest(classes = {FrontNovelApplication.class})
 public class BookTest {
-//
-//    @Autowired
-//    private FrontBookMapper frontBookMapper;
+
+    @Autowired
+    private FrontBookMapper frontBookMapper;
 //    @Autowired
 //    private BookIndexMapper bookIndexMapper;
-private RestHighLevelClient client;
+    private RestHighLevelClient client;
 
     @BeforeEach
     void setup(){
@@ -72,9 +77,30 @@ private RestHighLevelClient client;
     }
 
     @Test
-    public void deleteHotelIndex() throws IOException {
+    public void deleteBookIndex() throws IOException {
         DeleteIndexRequest request = new DeleteIndexRequest("book");
 
         client.indices().delete(request, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    public void initializeBookIndex() throws IOException {
+        SelectStatementProvider selectAll = select(id, catId, catName, bookName, lastIndexId, authorName, wordCount, updateTime, visitCount, bookStatus, bookDesc)
+                .from(book)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        List<Book> books = frontBookMapper.selectMany(selectAll);
+        ObjectMapper objectMapper = new ObjectMapper();
+        BulkRequest request = new BulkRequest();
+
+        for (Book book : books) {
+            BookDoc bookDoc = new BookDoc(book);
+            request.add(new IndexRequest("book")
+                    .id(bookDoc.getId().toString())
+                    .source(objectMapper.writeValueAsString(bookDoc), XContentType.JSON));
+        }
+
+        client.bulk(request, RequestOptions.DEFAULT);
     }
 }
