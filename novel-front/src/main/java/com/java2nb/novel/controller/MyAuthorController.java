@@ -134,6 +134,16 @@ public class MyAuthorController {
         }
     }
 
+    @PostMapping("addBookContent")
+    public Result<?> addBookContent(Long bookId, Byte isVip, BookContentVO bookContent, HttpServletRequest request) {
+        String token = getToken(request);
+        if(token != null && jwtTokenUtil.canRefresh(token)) {
+            return myAuthorService.addBookContent(bookContent, bookId, isVip);
+        }else{
+            return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
+        }
+    }
+
     private static String getToken(HttpServletRequest request) {
         String token = CookieUtil.getCookie(request, "Authorization");
         if(token == null) {

@@ -227,4 +227,9 @@ public interface BookIndexMapper {
 
     @Delete("delete from book_index where id = #{indexId}")
     void deleteIndex(long indexId);
+
+    @Insert("insert into book_index (book_id, index_num, index_name, word_count, is_vip, create_time, update_time) " +
+            "values (#{bookId}, #{indexNum}, #{indexName}, #{wordCount}, #{isVip}, #{createTime}, #{updateTime})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    void insertBookIndex(BookIndex newBookIndex);
 }

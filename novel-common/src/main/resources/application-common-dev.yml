@@ -28,6 +28,13 @@ spring:
     password: test123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+ # 消息队列
+  rabbitmq:
+    host: 192.168.1.5
+    port: 5672
+    virtual-host: /novel
+    username: novel
+    password: test123456
 
 ####使用shardingJdbc时，
 ####所有的jdbcType都不能是LONGVARCHAR,否则会导致java.io.NotSerializableException: java.io.StringReader错误

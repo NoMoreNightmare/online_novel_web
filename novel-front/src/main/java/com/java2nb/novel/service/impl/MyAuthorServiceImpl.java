@@ -11,8 +11,10 @@ import com.java2nb.novel.vo.BookContentVO;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.delete.render.DeleteStatementProvider;
+import org.mybatis.dynamic.sql.insert.InsertDSL;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
+import org.mybatis.dynamic.sql.select.function.Add;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import java.util.Optional;
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
+import static org.mybatis.dynamic.sql.insert.InsertDSL.*;
 
 @Service
 @Slf4j
@@ -174,7 +177,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
         BookIndex bookIndex = bookIndexMapper.selectOne(selectWordCount).get();
         int preWordCount = bookIndex.getWordCount();
-        long bookId = bookContent.getId();
+        long bookId = bookIndex.getBookId();
         int originalTotalWordCount = bookMapper.selectOne(select(wordCount)
                 .from(book)
                 .where(id, isEqualTo(bookId))
@@ -249,6 +252,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
             book.setBookStatus((byte)0);
             book.setVisitCount(0L);
             book.setWordCount(0);
+            book.setYesterdayBuy(0);
 
             book.setAuthorId(author.get().getId());
             book.setAuthorName(author.get().getPenName());
@@ -328,6 +332,60 @@ public class MyAuthorServiceImpl implements MyAuthorService {
         }else{
             return Result.ok(false);
         }
+
+    }
+
+    @Override
+    public Result<?> addBookContent(BookContentVO bookContent, Long bookId, Byte isVip) {
+        //查询出最大的index num
+        SelectStatementProvider selectIndexNum = select(BookIndexDynamicSqlSupport.indexNum)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .orderBy(BookIndexDynamicSqlSupport.indexNum.descending())
+                .limit(1)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        Optional<BookIndex> bookIndex = bookIndexMapper.selectOne(selectIndexNum);
+
+        Long bookIndexId;
+        Date now = new Date();
+        BookIndex newBookIndex = new BookIndex();
+        newBookIndex.setBookId(bookId);
+        newBookIndex.setIsVip(isVip);
+        newBookIndex.setCreateTime(now);
+        newBookIndex.setUpdateTime(now);
+        newBookIndex.setIndexName(bookContent.getIndexName());
+        newBookIndex.setWordCount(bookContent.getContent().length());
+        if (bookIndex.isPresent()) {
+            //更新book index
+            newBookIndex.setIndexNum(bookIndex.get().getIndexNum() + 1);
+        }else{
+            newBookIndex.setIndexNum(1);
+        }
+        bookIndexMapper.insertBookIndex(newBookIndex);
+        bookIndexId = newBookIndex.getId();
+
+
+        //更新book content
+        bookContentMapper.insertBookContent(bookIndexId, bookContent.getContent());
+
+        //更新book
+        UpdateStatementProvider updateBook = update(book)
+                .set(wordCount)
+                .equalToConstant(wordCount.name() + " + " + String.valueOf(bookContent.getContent().length()))
+                .set(lastIndexId)
+                .equalTo(bookIndexId)
+                .set(lastIndexName)
+                .equalTo(bookContent.getIndexName())
+                .set(updateTime)
+                .equalTo(now)
+                .set(BookDynamicSqlSupport.isVip)
+                .equalTo(isVip)
+                .build().render(RenderingStrategy.MYBATIS3);
+
+        bookMapper.update(updateBook);
+        return Result.ok();
+
 
     }
 

@@ -27,4 +27,6 @@ public interface MyAuthorService {
     String register(Long userId, Author author);
 
     Result<?> checkPenName(String penName);
+
+    Result<?> addBookContent(BookContentVO bookContent, Long bookId, Byte isVip);
 }

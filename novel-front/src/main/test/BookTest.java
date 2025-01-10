@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -43,6 +44,9 @@ public class BookTest {
 //    @Autowired
 //    private BookIndexMapper bookIndexMapper;
     private RestHighLevelClient client;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @BeforeEach
     void setup(){
@@ -102,5 +106,13 @@ public class BookTest {
         }
 
         client.bulk(request, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    public void testSendToFanoutExchange(){
+        String exchange = "novel.book.fanout";
+        String message = "test";
+
+        rabbitTemplate.convertAndSend(exchange,"", message);
     }
 }

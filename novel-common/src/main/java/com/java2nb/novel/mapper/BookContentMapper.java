@@ -168,4 +168,6 @@ public interface BookContentMapper {
         );
     }
 
+    @Insert("insert into book_content (index_id, content) values (#{bookIndexId}, #{content})")
+    void insertBookContent(Long bookIndexId, String content);
 }

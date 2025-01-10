@@ -26,3 +26,4 @@ thread:
 elasticsearch:
   hosts: 192.168.200.142
   port: 9200
+
