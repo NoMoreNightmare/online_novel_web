@@ -7,6 +7,7 @@ import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.vo.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +59,8 @@ public interface MyBookService {
     Result<?> listCommentRank(String key, int limit);
 
     void queryUsingElasticSearch(PageBean<BookDoc> pageBean, SearchDataVO searchData);
+
+//    Result<?> recoverFromES() throws IOException;
 
 //    void recover();
 }

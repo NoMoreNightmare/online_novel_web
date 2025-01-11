@@ -28,10 +28,12 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
+import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -695,6 +697,38 @@ public class MyBookServiceImpl implements MyBookService {
             throw new RuntimeException(e);
         }
     }
+
+//    @Override
+//    public Result<?> recoverFromES() throws IOException {
+//        SearchRequest request = new SearchRequest("book");
+//        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+//        sourceBuilder.query(QueryBuilders.matchAllQuery());
+//        sourceBuilder.size(1200);
+//        request.source(sourceBuilder);
+//
+//        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+//
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        SearchHit[] hits = response.getHits().getHits();
+//        for (SearchHit hit : hits) {
+//            String sourceAsString = hit.getSourceAsString();
+//            BookDoc bookDoc = objectMapper.readValue(sourceAsString, new TypeReference<BookDoc>() {
+//            });
+//            UpdateStatementProvider update = update(book)
+//                    .set(lastIndexId)
+//                    .equalTo(bookDoc.getLastIndexId())
+//                    .set(lastIndexName)
+//                    .equalTo(bookDoc.getLastIndexName())
+//                    .set(lastIndexUpdateTime)
+//                    .equalTo(bookDoc.getUpdateTime())
+//                    .where(id, isEqualTo(bookDoc.getId()))
+//                    .build()
+//                    .render(RenderingStrategy.MYBATIS3);
+//
+//            bookMapper.update(update);
+//        }
+//        return Result.ok();
+//    }
 
     private void handleResponse(SearchResponse response, PageBean<BookDoc> pageBean) {
         SearchHits searchHits = response.getHits();

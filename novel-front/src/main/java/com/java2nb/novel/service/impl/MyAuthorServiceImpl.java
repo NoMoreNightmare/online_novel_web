@@ -89,7 +89,6 @@ public class MyAuthorServiceImpl implements MyAuthorService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<?> deleteIndex(long indexId, Long userId) {
-        //TODO 删除一个书的章节的操作还没做
         //查询它的bookid
         SelectStatementProvider select = select(BookIndexDynamicSqlSupport.bookId, BookIndexDynamicSqlSupport.indexNum, BookIndexDynamicSqlSupport.wordCount)
                 .from(BookIndexDynamicSqlSupport.bookIndex)
@@ -128,10 +127,11 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                 .build()
                 .render(RenderingStrategies.MYBATIS3));
 
+        UpdateStatementProvider update;
         if(currLastIndex.isPresent()) {
                     //最新的index id
 
-            UpdateStatementProvider update = update(BookDynamicSqlSupport.book)
+            update = update(BookDynamicSqlSupport.book)
                     .set(BookDynamicSqlSupport.lastIndexId)
                     .equalTo(currLastIndex.get().getLastIndexId())
                     .set(BookDynamicSqlSupport.lastIndexName)
@@ -146,8 +146,24 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                     .build()
                     .render(RenderingStrategy.MYBATIS3);
 
-            bookMapper.update(update);
+        }else{
+            update = update(BookDynamicSqlSupport.book)
+                    .set(BookDynamicSqlSupport.lastIndexId)
+                    .equalTo(-1L)
+                    .set(BookDynamicSqlSupport.lastIndexName)
+                    .equalTo("")
+                    .set(BookDynamicSqlSupport.updateTime)
+                    .equalTo(new Date())
+                    .set(BookDynamicSqlSupport.isVip)
+                    .equalTo((byte) 0)
+                    .set(BookDynamicSqlSupport.wordCount)
+                    .equalTo(0)
+                    .where(BookDynamicSqlSupport.id, isEqualTo(bookId))
+                    .build()
+                    .render(RenderingStrategy.MYBATIS3);
+
         }
+        bookMapper.update(update);
 
         mqManager.sendBookContentDeleteMessage(indexId);
         mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
@@ -238,7 +254,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
         bookMapper.update(updateBookIndexName);
 
         mqManager.sendBookContentMessage(bookContent.getIndexId());
-        mqManager.sendBookMessage(bookContent.getIndexId(), RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
+        mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
 
         return Result.ok();
 
@@ -246,8 +262,9 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
     @Override
     public Result<?> addBook(Book book, Long userId) {
-        book.setUpdateTime(new Date());
-        book.setCreateTime(new Date());
+        Date now = new Date();
+        book.setUpdateTime(now);
+        book.setCreateTime(now);
 
         //查询用户的author id
 
@@ -264,6 +281,9 @@ public class MyAuthorServiceImpl implements MyAuthorService {
             book.setVisitCount(0L);
             book.setWordCount(0);
             book.setYesterdayBuy(0);
+            book.setLastIndexId(-1L);
+            book.setLastIndexName("");
+            book.setLastIndexUpdateTime(now);
 
             book.setAuthorId(author.get().getId());
             book.setAuthorName(author.get().getPenName());
@@ -391,10 +411,13 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                 .equalTo(bookIndexId)
                 .set(lastIndexName)
                 .equalTo(bookContent.getIndexName())
+                .set(lastIndexUpdateTime)
+                .equalTo(now)
                 .set(updateTime)
                 .equalTo(now)
                 .set(BookDynamicSqlSupport.isVip)
                 .equalTo(isVip)
+                .where(id, isEqualTo(bookId))
                 .build().render(RenderingStrategy.MYBATIS3);
 
         bookMapper.update(updateBook);

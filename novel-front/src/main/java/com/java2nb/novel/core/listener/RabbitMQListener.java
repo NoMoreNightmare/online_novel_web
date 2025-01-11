@@ -98,11 +98,11 @@ public class RabbitMQListener {
         Book book = bookOptional.get();
         UpdateRequest updateRequest = new UpdateRequest("book", bookId.toString());
         updateRequest.doc(
-                lastIndexId.name(), book.getLastIndexId(),
-                lastIndexName.name(), book.getLastIndexName(),
-                wordCount.name(), book.getWordCount(),
-                updateTime.name(), book.getUpdateTime(),
-                visitCount.name(), book.getVisitCount()
+                "lastIndexId", book.getLastIndexId(),
+                "lastIndexName", book.getLastIndexName(),
+                "wordCount", book.getWordCount(),
+                "updateTime", book.getUpdateTime(),
+                "visitCount", book.getVisitCount()
         );
         client.update(updateRequest, RequestOptions.DEFAULT);
     }

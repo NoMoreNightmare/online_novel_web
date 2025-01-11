@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java2nb.novel.FrontNovelApplication;
 import com.java2nb.novel.core.result.ElasticSearchConstant;
@@ -9,12 +10,19 @@ import com.java2nb.novel.vo.BookDoc;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.Before;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,5 +122,36 @@ public class BookTest {
         String message = "test";
 
         rabbitTemplate.convertAndSend(exchange,"", message);
+    }
+
+    @Test
+    public void testRecoverDataFromES() throws IOException {
+        SearchRequest request = new SearchRequest("book");
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(QueryBuilders.matchAllQuery());
+        request.source(sourceBuilder);
+
+        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        SearchHit[] hits = response.getHits().getHits();
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            BookDoc bookDoc = objectMapper.readValue(sourceAsString, new TypeReference<BookDoc>() {});
+            UpdateStatementProvider update = update(book)
+                    .set(lastIndexId)
+                    .equalTo(bookDoc.getLastIndexId())
+                    .set(lastIndexName)
+                    .equalTo(bookDoc.getLastIndexName())
+                    .set(lastIndexUpdateTime)
+                    .equalTo(bookDoc.getUpdateTime())
+                    .where(id, isEqualTo(bookDoc.getId()))
+                    .build()
+                    .render(RenderingStrategy.MYBATIS3);
+
+            frontBookMapper.update(update);
+
+
+        }
     }
 }

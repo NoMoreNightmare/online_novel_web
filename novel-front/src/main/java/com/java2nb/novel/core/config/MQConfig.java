@@ -89,7 +89,7 @@ public class MQConfig {
 
     @Bean
     public Queue bookCaffeineQueue(){
-        return new Queue(bookCaffeineQueueName());
+        return new Queue(bookCaffeineQueueName(), false);
     }
 
     @Bean
@@ -126,7 +126,7 @@ public class MQConfig {
     @Bean
     public Queue bookContentCaffeineQueue() {
 
-        return new Queue(bookContentCaffeineQueueName());
+        return new Queue(bookContentCaffeineQueueName(), false);
     }
 
     @Bean
@@ -169,7 +169,7 @@ public class MQConfig {
     @Bean
     public Queue bookContentDeleteCaffeineQueue() {
 
-        return new Queue(bookContentDeleteCaffeineQueueName());
+        return new Queue(bookContentDeleteCaffeineQueueName(), false);
     }
 
     @Bean

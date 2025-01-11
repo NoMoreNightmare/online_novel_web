@@ -6,7 +6,6 @@ import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.CookieUtil;
 import com.java2nb.novel.core.utils.JwtTokenUtil;
-import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.service.MyBookService;
 import com.java2nb.novel.vo.BookDoc;
 import com.java2nb.novel.vo.BookVO;
@@ -17,9 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
 @RequestMapping("book")
 @RestController
@@ -124,6 +124,15 @@ public class MyBookController {
             return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
         }
     }
+
+//    @GetMapping("recover")
+//    public Result<?> recoverFromES() {
+//        try {
+//            return myBookService.recoverFromES();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
 //    @GetMapping("recover")
 //    public Result<?> recover() {
