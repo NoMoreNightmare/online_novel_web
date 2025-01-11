@@ -88,3 +88,5 @@ http:
     ip: u493.kdltps.com
     # 代理端口号
     port: 15818
+
+machine-id: 1

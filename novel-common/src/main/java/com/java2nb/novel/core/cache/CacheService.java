@@ -52,4 +52,5 @@ public interface CacheService {
 	void expire(String key, long timeout);
 
 
+    long getMQUUID(String mqKey) throws InterruptedException;
 }

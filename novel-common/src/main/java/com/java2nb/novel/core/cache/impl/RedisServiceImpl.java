@@ -4,6 +4,7 @@ import com.java2nb.novel.core.cache.CacheService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,10 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Service
 public class RedisServiceImpl implements CacheService {
+    @Value("${machine-id}")
+    private long machineId;
+
+    private final long initialTimeStamp = 1577836800000L;
 
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -28,6 +33,11 @@ public class RedisServiceImpl implements CacheService {
 
     @Resource
     private RedissonClient redissonClient;
+
+//
+//    public void setBookContentQueueName(String bookContentQueueName) {
+//        this.bookContentQueueName = bookContentQueueName;
+//    }
 
 
     @Override
@@ -76,6 +86,35 @@ public class RedisServiceImpl implements CacheService {
     public void expire(String key, long timeout) {
         redisTemplate.expire(key, timeout, TimeUnit.SECONDS);
         stringRedisTemplate.expire(key, timeout, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public long getMQUUID(String mqKey) throws InterruptedException {
+        //TODO 生成UUID
+
+        long id = 0;
+        long timestamp = System.currentTimeMillis() - initialTimeStamp;
+        timestamp = timestamp << 22;
+
+        machineId = machineId << 12;
+
+        String completeKey = mqKey + ":" + timestamp + ":" + machineId;
+        lock(completeKey);
+        long currentSequenceId;
+        String strSequenceId = stringRedisTemplate.opsForValue().get(completeKey);
+        if(strSequenceId != null) {
+            currentSequenceId = Long.parseLong(strSequenceId) + 1;
+            stringRedisTemplate.opsForValue().set(completeKey, String.valueOf(currentSequenceId));
+        }else{
+            currentSequenceId = 0;
+            stringRedisTemplate.opsForValue().set(completeKey, String.valueOf(currentSequenceId));
+        }
+
+        long fullId = (id | timestamp | machineId | currentSequenceId);
+
+        unlock(completeKey);
+
+        return fullId;
     }
 
     private boolean tryLock(String key) throws InterruptedException {

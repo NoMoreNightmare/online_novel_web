@@ -94,4 +94,9 @@ public interface CacheKey {
      * 排行榜评论榜
      */
     String RANKING_LIST_COMMENT = "rankingListComment";
+
+    //与rabbitMQ相关的key------------------------------------------------------------------
+
+    public static String MQ_BOOK_CONTENT = "mqBookContent";
+    public static String MQ_BOOK = "mqBook";
 }
