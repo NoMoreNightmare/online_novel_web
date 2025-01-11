@@ -24,6 +24,7 @@ import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -46,6 +47,10 @@ public class RabbitMQListener {
 
     @Resource(name = "bookContentCaffeineQueueName")
     private String bookContentCaffeineQueueName;
+
+    @Resource(name = "bookContentDeleteCaffeineQueueName")
+    private String bookContentDeleteCaffeineQueueName;
+
     @Autowired
     private FrontBookMapper frontBookMapper;
     @Autowired
@@ -119,7 +124,7 @@ public class RabbitMQListener {
         BookDoc bookDoc = new BookDoc(book);
         ObjectMapper objectMapper = new ObjectMapper();
 
-        IndexRequest request = new IndexRequest("book", bookId.toString());
+        IndexRequest request = new IndexRequest("book").id(bookId.toString());
         request.source(objectMapper.writeValueAsString(bookDoc), XContentType.JSON);
         client.index(request, RequestOptions.DEFAULT);
     }
@@ -178,6 +183,16 @@ public class RabbitMQListener {
                 cacheService.set(String.valueOf(bookIndexId), objectMapper.writeValueAsString(bookContent));
             }
         }
+    }
+
+    @RabbitListener(queues = RabbitMQConstant.RABBITMQ_BOOK_CONTENT_REDIS_DELETE_QUEUE)
+    public void receiveBookContentRedisDelete(Long bookIndexId) throws JsonProcessingException {
+        cacheService.del(String.valueOf(bookIndexId));
+    }
+
+    @RabbitListener(queues = "#{bookCaffeineQueueName}")
+    public void receiveBookContentCaffeineDelete(Long bookIndexId) throws JsonProcessingException {
+        bookCacheService.delBookContentByKey(String.valueOf(bookIndexId));
     }
 
 }

@@ -12,12 +12,20 @@ public class MQManager {
     @Autowired
     private AmqpTemplate amqpTemplate;
 
-    public void sendBookMessage(Long bookId){
-        sendMQMessage(RabbitMQConstant.RABBITMQ_BOOK_EXCHANGE, null, bookId);
+    public void sendBookMessage(Long bookId, String routeKey){
+        sendMQMessage(RabbitMQConstant.RABBITMQ_BOOK_EXCHANGE, routeKey, bookId);
+    }
+
+    public void sendBookContentMessage(Long bookIndexId, String routeKey){
+        sendMQMessage(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_EXCHANGE, routeKey, bookIndexId);
     }
 
     public void sendBookContentMessage(Long bookIndexId){
-        sendMQMessage(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_EXCHANGE, null, bookIndexId);
+        sendMQMessage(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_EXCHANGE, RabbitMQConstant.RABBITMQ_BOOK_CONTENT_UPDATE_OR_ADD, bookIndexId);
+    }
+
+    public void sendBookContentDeleteMessage(Long bookIndexId){
+        sendMQMessage(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_EXCHANGE, RabbitMQConstant.RABBITMQ_BOOK_CONTENT_DELETE, bookIndexId);
     }
 
     private void sendMQMessage(String exchange, String routeKey, Object message) {

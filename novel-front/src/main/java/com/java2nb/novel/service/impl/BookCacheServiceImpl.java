@@ -1,6 +1,7 @@
 package com.java2nb.novel.service.impl;
 
 import com.java2nb.novel.entity.Book;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -43,4 +44,8 @@ public class BookCacheServiceImpl {
     }
 
 
+    @CacheEvict(cacheNames = BOOK_CONTENT, key = "#key")
+    public void delBookContentByKey(String key) {
+
+    }
 }

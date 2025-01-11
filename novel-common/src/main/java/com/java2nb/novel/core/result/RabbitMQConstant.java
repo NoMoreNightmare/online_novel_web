@@ -10,8 +10,14 @@ public class RabbitMQConstant {
     public static final String RABBITMQ_BOOK_CONTENT_EXCHANGE = "novel.bookcontent.exchange";
     public static final String RABBITMQ_BOOK_CONTENT_REDIS_QUEUE = "novel.bookcontent.redis.queue";
     public static final String RABBITMQ_BOOK_CONTENT_CAFFEINE_QUEUE_PREFIX = "novel.bookcontent.caffeine.";
+    public static final String RABBITMQ_BOOK_CONTENT_REDIS_DELETE_QUEUE = "novel.bookcontent.delete.redis.queue";
+    public static final String RABBITMQ_BOOK_CONTENT_DELETE_CAFFEINE_QUEUE_PREFIX = "novel.bookcontent.caffeine.delete.";
 
     public static final String RABBITMQ_BOOK_BINDING_KEY = "book.#";
     public static final String RABBITMQ_BOOK_ADD_BINDING_KEY = "book.add";
     public static final String RABBITMQ_BOOK_UPDATE_BINDING_KEY = "book.update";
+    public static final String RABBITMQ_BOOK_CONTENT_DELETE = "bookcontent.delete";
+    public static final String RABBITMQ_BOOK_CONTENT_UPDATE_OR_ADD = "bookcontent.updateoradd";
+
+
 }

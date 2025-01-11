@@ -99,4 +99,5 @@ public interface CacheKey {
 
     public static String MQ_BOOK_CONTENT = "mqBookContent";
     public static String MQ_BOOK = "mqBook";
+    public static String MQ_BOOK_CONTENT_DELETE = "mqBookContentDelete";
 }

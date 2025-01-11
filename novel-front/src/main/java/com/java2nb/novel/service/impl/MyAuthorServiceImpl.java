@@ -2,7 +2,9 @@ package com.java2nb.novel.service.impl;
 
 import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.result.BookConstant;
+import com.java2nb.novel.core.result.RabbitMQConstant;
 import com.java2nb.novel.core.result.Result;
+import com.java2nb.novel.core.utils.MQManager;
 import com.java2nb.novel.entity.*;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.mapper.*;
@@ -38,13 +40,15 @@ public class MyAuthorServiceImpl implements MyAuthorService {
     @Autowired
     private AuthorMapper authorMapper;
     @Autowired
-    private BookMapper bookMapper;
+    private FrontBookMapper bookMapper;
     @Autowired
     private BookIndexMapper bookIndexMapper;
     @Autowired
     private BookContentMapper bookContentMapper;
     @Autowired
     private AuthorCodeMapper authorCodeMapper;
+    @Autowired
+    private MQManager mqManager;
 
     @Override
     public Result<?> listAuthorBook(long curr, long limit, Long userId) {
@@ -85,6 +89,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<?> deleteIndex(long indexId, Long userId) {
+        //TODO 删除一个书的章节的操作还没做
         //查询它的bookid
         SelectStatementProvider select = select(BookIndexDynamicSqlSupport.bookId, BookIndexDynamicSqlSupport.indexNum, BookIndexDynamicSqlSupport.wordCount)
                 .from(BookIndexDynamicSqlSupport.bookIndex)
@@ -143,6 +148,9 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
             bookMapper.update(update);
         }
+
+        mqManager.sendBookContentDeleteMessage(indexId);
+        mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
 
 
 
@@ -229,6 +237,9 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                 .render(RenderingStrategy.MYBATIS3);
         bookMapper.update(updateBookIndexName);
 
+        mqManager.sendBookContentMessage(bookContent.getIndexId());
+        mqManager.sendBookMessage(bookContent.getIndexId(), RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
+
         return Result.ok();
 
     }
@@ -256,10 +267,12 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
             book.setAuthorId(author.get().getId());
             book.setAuthorName(author.get().getPenName());
-            bookMapper.insert(book);
+            bookMapper.insertWithIdBack(book);
         }else{
             return Result.customError(BookConstant.ADD_BOOK_FAIL_MSG, BookConstant.ADD_BOOK_FAIL);
         }
+
+        mqManager.sendBookMessage(book.getId(), RabbitMQConstant.RABBITMQ_BOOK_ADD_BINDING_KEY);
 
         return Result.ok();
 
@@ -275,6 +288,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                 .render(RenderingStrategy.MYBATIS3);
 
         bookMapper.update(updateBookPic);
+        mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
         return Result.ok();
     }
 
@@ -384,6 +398,8 @@ public class MyAuthorServiceImpl implements MyAuthorService {
                 .build().render(RenderingStrategy.MYBATIS3);
 
         bookMapper.update(updateBook);
+        mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
+        mqManager.sendBookContentMessage(bookIndexId);
         return Result.ok();
 
 

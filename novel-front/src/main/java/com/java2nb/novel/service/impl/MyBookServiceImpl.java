@@ -7,8 +7,10 @@ import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.BookConstant;
+import com.java2nb.novel.core.result.RabbitMQConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.Constants;
+import com.java2nb.novel.core.utils.MQManager;
 import com.java2nb.novel.entity.*;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.mapper.*;
@@ -79,6 +81,8 @@ public class MyBookServiceImpl implements MyBookService {
     private BookContentMapper bookContentMapper;
     @Autowired
     private BookCategoryMapper bookCategoryMapper;
+    @Autowired
+    private MQManager mqManager;
 
     @Override
     public Result<?> listClickRank() {
@@ -370,6 +374,9 @@ public class MyBookServiceImpl implements MyBookService {
 
         int success = bookCommentMapper.addBookComment(bookId, commentContent, userId);
         bookMapper.updateCommentCount(1, bookId);
+        //刷新Redis，caffeine和ES
+        //TODO 后面细分，只更新redis和caffeine，不更新ES
+        mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
         if(success == 1){
             return Result.ok();
         }else{

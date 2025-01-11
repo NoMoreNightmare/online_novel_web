@@ -99,8 +99,8 @@ public class MQConfig {
 
 
     @Bean
-    public FanoutExchange bookContentFanoutExchange() {
-        return new FanoutExchange(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_EXCHANGE);
+    public TopicExchange bookContentTopicExchange() {
+        return new TopicExchange(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_EXCHANGE);
     }
 
 
@@ -131,12 +131,49 @@ public class MQConfig {
 
     @Bean
     public Binding bookContentRedisBinding() {
-        return BindingBuilder.bind(bookContentRedisQueue()).to(bookContentFanoutExchange());
+        return BindingBuilder.bind(bookContentRedisQueue()).to(bookContentTopicExchange()).with(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_UPDATE_OR_ADD);
     }
 
 
     @Bean
     public Binding bookContentCaffeineBinding() {
-        return BindingBuilder.bind(bookContentCaffeineQueue()).to(bookContentFanoutExchange());
+        return BindingBuilder.bind(bookContentCaffeineQueue()).to(bookContentTopicExchange()).with(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_UPDATE_OR_ADD);
+    }
+
+
+    @Bean
+    public Binding bookContentDeleteRedisBinding() {
+        return BindingBuilder.bind(bookContentDeleteRedisQueue()).to(bookContentTopicExchange()).with(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_DELETE);
+    }
+
+    @Bean
+    public Queue bookContentDeleteRedisQueue() {
+        return new Queue(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_REDIS_DELETE_QUEUE);
+    }
+
+
+
+    @Bean
+    public String bookContentDeleteCaffeineQueueName(){
+        //TODO 雪花算法生成的id
+        long id = 0;
+        try {
+            id = cacheService.getMQUUID(CacheKey.MQ_BOOK_CONTENT_DELETE);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        return RabbitMQConstant.RABBITMQ_BOOK_CONTENT_DELETE_CAFFEINE_QUEUE_PREFIX + id + ".queue";
+    }
+
+    @Bean
+    public Queue bookContentDeleteCaffeineQueue() {
+
+        return new Queue(bookContentDeleteCaffeineQueueName());
+    }
+
+    @Bean
+    public Binding bookContentDeleteCaffeineBinding() {
+        return BindingBuilder.bind(bookContentDeleteCaffeineQueue()).to(bookContentTopicExchange()).with(RabbitMQConstant.RABBITMQ_BOOK_CONTENT_DELETE);
     }
 }

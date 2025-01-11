@@ -4,10 +4,9 @@ import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.vo.SearchDataVO;
 import com.java2nb.novel.vo.BookVO;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
+import javax.annotation.Generated;
 import java.util.List;
 
 /**
@@ -54,4 +53,8 @@ public interface FrontBookMapper extends BookMapper {
             "limit #{offset}, #{limit}")
     List<BookIndex> queryChapter(long offset, long limit, String orderBy, Long bookId);
 
+    @Insert("insert into book (work_direction, cat_id, cat_name, pic_url, book_name, author_id, author_name, book_desc, score, book_status, visit_count, word_count, yesterday_buy, update_time, create_time) VALUES " +
+            "(#{workDirection}, #{catId}, #{catName}, #{picUrl}, #{bookName}, #{authorId}, #{authorName}, #{bookDesc}, #{score}, #{bookStatus}, #{visitCount}, #{wordCount}, #{yesterdayBuy}, #{updateTime}, #{createTime})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    void insertWithIdBack(Book book);
 }

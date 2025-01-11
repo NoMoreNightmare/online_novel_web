@@ -99,7 +99,7 @@ public class RedisServiceImpl implements CacheService {
         machineId = machineId << 12;
 
         String completeKey = mqKey + ":" + timestamp + ":" + machineId;
-        lock(completeKey);
+        lock(mqKey);
         long currentSequenceId;
         String strSequenceId = stringRedisTemplate.opsForValue().get(completeKey);
         if(strSequenceId != null) {
@@ -112,7 +112,7 @@ public class RedisServiceImpl implements CacheService {
 
         long fullId = (id | timestamp | machineId | currentSequenceId);
 
-        unlock(completeKey);
+        unlock(mqKey);
 
         return fullId;
     }
