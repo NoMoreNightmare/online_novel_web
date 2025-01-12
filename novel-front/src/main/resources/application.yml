@@ -45,7 +45,15 @@ book:
 
 
 
-
-
+xxl:
+  job:
+    enabled: true
+    admin:
+      addresses: http://192.168.200.142:8080/xxl-job-admin
+    executor:
+      appname: novel
+      address: 192.168.200.142
+      port: 9999
+    accessToken: default_token
 
 

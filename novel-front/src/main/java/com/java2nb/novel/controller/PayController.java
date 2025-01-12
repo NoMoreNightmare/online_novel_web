@@ -12,6 +12,7 @@ import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.config.AlipayProperties;
 import com.java2nb.novel.core.utils.ThreadLocalUtil;
 import com.java2nb.novel.service.OrderService;
+import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

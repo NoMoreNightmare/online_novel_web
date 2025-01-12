@@ -1,0 +1,11 @@
+package com.java2nb.novel.core.result;
+
+public class RedisConstant {
+    public static final Long MIN_TTL = 600L;
+
+    public static final Long INDEX_MAX_TTL = 1800L;
+
+    public static final Long BOOK_MAX_TTL = 1200L;
+
+    public static final Long BOOK_CONTENT_MAX_TTL = 900L;
+}

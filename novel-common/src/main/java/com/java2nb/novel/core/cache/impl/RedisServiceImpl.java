@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,7 +26,8 @@ public class RedisServiceImpl implements CacheService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate redisTemplate;
+
 
     private final long retryTime = 1L;
     private final long expireReleaseTime = 10L;
@@ -55,6 +57,30 @@ public class RedisServiceImpl implements CacheService {
         stringRedisTemplate.opsForValue().set(key, value, timeout, TimeUnit.SECONDS);
 
     }
+
+    @Override
+    public Object hmGet(String key, String field) {
+        return redisTemplate.opsForHash().get(key, field);
+    }
+
+
+
+    @Override
+    public void hmSet(String key, String field, Object value) {
+        redisTemplate.opsForHash().put(key, field, value);
+    }
+
+    @Override
+    public Long incrHmKeyFieldByOne(String key, String field){
+        return redisTemplate.opsForHash().increment(key, field, 1);
+    }
+
+    @Override
+    public Map<Object, Object> hmGetAll(String key) {
+        return (Map<Object, Object>) redisTemplate.opsForHash().entries(key);
+    }
+
+
 
     @Override
     public Object getObject(String key) {

@@ -12,6 +12,7 @@ import com.java2nb.novel.vo.BookVO;
 import com.java2nb.novel.vo.SearchDataVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -29,6 +30,8 @@ public class MyBookController {
     MyBookService myBookService;
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+    @Value("${elasticsearch.enable}")
+    private boolean elasticsearchEnable;
 
     @GetMapping("listClickRank")
     public Result<?> listClickRank() {
@@ -83,7 +86,7 @@ public class MyBookController {
 
     @GetMapping("searchByPage")
     public Result<?> searchByPage(SearchDataVO searchData) {
-        if(searchData.getKeyword() != null && !searchData.getKeyword().isEmpty()) {
+        if(elasticsearchEnable && searchData.getKeyword() != null && !searchData.getKeyword().isEmpty()) {
             PageBean<BookDoc> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
             myBookService.queryUsingElasticSearch(pageBean, searchData);
             return Result.ok(pageBean);

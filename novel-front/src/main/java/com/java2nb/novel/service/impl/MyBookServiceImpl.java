@@ -8,6 +8,7 @@ import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.RabbitMQConstant;
+import com.java2nb.novel.core.result.RedisConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.Constants;
 import com.java2nb.novel.core.utils.MQManager;
@@ -28,12 +29,10 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
-import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,6 +85,8 @@ public class MyBookServiceImpl implements MyBookService {
     @Autowired
     private MQManager mqManager;
 
+    Random random = new Random();
+
     @Override
     public Result<?> listClickRank() {
         return listClickRank(CacheKey.INDEX_CLICK_RANK_BOOK_KEY, 10);
@@ -135,7 +136,7 @@ public class MyBookServiceImpl implements MyBookService {
             } catch (JsonProcessingException e) {
                 return Result.customError("序列化错误", 2020);
             }
-            cacheService.set(key, jsonStr, 1800);
+            cacheService.set(key, jsonStr, RedisConstant.INDEX_MAX_TTL);
         }else{
             try {
                 books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});
@@ -181,7 +182,7 @@ public class MyBookServiceImpl implements MyBookService {
             } catch (JsonProcessingException e) {
                 return Result.customError("序列化错误", 2020);
             }
-            cacheService.set(key, booksJson, 1800);
+            cacheService.set(key, booksJson, RedisConstant.INDEX_MAX_TTL);
         }else{
             try {
                 books = objectMapper.readValue(booksJson, new TypeReference<List<Book>>() {
@@ -230,7 +231,7 @@ public class MyBookServiceImpl implements MyBookService {
                 return Result.customError("序列化错误", 2020);
             }
 
-            cacheService.set(key, booksJson, 1800);
+            cacheService.set(key, booksJson, RedisConstant.INDEX_MAX_TTL);
         }else{
             try {
                 books = objectMapper.readValue(booksJson, new TypeReference<List<Book>>() {
@@ -362,8 +363,9 @@ public class MyBookServiceImpl implements MyBookService {
     @Transactional
     @Override
     public Result<?> addVisitCount(Long bookId) {
-        boolean res = bookMapper.addVisitCountByOne(bookId);
-        if(res){
+//        boolean res = bookMapper.addVisitCountByOne(bookId);
+        Long totalCount = cacheService.incrHmKeyFieldByOne(CacheKey.BOOK_ADD_VISIT_COUNT, String.valueOf(bookId));
+        if(totalCount > 0){
             return Result.ok();
         }else{
             return Result.error();
@@ -533,7 +535,7 @@ public class MyBookServiceImpl implements MyBookService {
             }
             result = new ObjectMapper().writeValueAsString(
                     list.stream().collect(Collectors.groupingBy(BookSettingVO::getType)));
-            cacheService.set(CacheKey.INDEX_BOOK_SETTINGS_KEY, result);
+            cacheService.set(CacheKey.INDEX_BOOK_SETTINGS_KEY, result, RedisConstant.INDEX_MAX_TTL);
         }
         return new ObjectMapper().readValue(result, Map.class);
     }
@@ -610,7 +612,7 @@ public class MyBookServiceImpl implements MyBookService {
             } catch (JsonProcessingException e) {
                 return Result.customError("序列化错误", 2020);
             }
-            cacheService.set(key, jsonStr, 1800);
+            cacheService.set(key, jsonStr, RedisConstant.INDEX_MAX_TTL);
         }else{
             try {
                 books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});

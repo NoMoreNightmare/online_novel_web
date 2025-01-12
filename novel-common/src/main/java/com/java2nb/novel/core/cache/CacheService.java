@@ -1,5 +1,7 @@
 package com.java2nb.novel.core.cache;
 
+import java.util.Map;
+
 /**
  * @author 11797
  */
@@ -53,4 +55,13 @@ public interface CacheService {
 
 
     long getMQUUID(String mqKey) throws InterruptedException;
+
+	Object hmGet(String key, String field);
+
+	void hmSet(String key, String value, Object object);
+
+	Long incrHmKeyFieldByOne(String key, String field);
+
+	Map<Object, Object> hmGetAll(String key) throws InterruptedException;
+
 }
