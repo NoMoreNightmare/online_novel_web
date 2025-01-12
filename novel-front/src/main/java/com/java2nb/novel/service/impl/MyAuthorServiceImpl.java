@@ -260,6 +260,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
     }
 
+    @Transactional
     @Override
     public Result<?> addBook(Book book, Long userId) {
         Date now = new Date();
@@ -298,6 +299,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
     }
 
+    @Transactional
     @Override
     public Result<?> updateBookPic(Long bookId, String bookPic) {
         UpdateStatementProvider updateBookPic = update(book)
@@ -312,6 +314,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
         return Result.ok();
     }
 
+    @Transactional
     @Override
     public String register(Long userId, Author author) {
         String inviteCode = author.getInviteCode();
@@ -369,6 +372,7 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
     }
 
+    @Transactional
     @Override
     public Result<?> addBookContent(BookContentVO bookContent, Long bookId, Byte isVip) {
         //查询出最大的index num

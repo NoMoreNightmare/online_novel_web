@@ -1,6 +1,9 @@
 package com.java2nb.novel.core.cache;
 
+import org.springframework.data.redis.core.ZSetOperations;
+
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 11797
@@ -56,12 +59,20 @@ public interface CacheService {
 
     long getMQUUID(String mqKey) throws InterruptedException;
 
-	Object hmGet(String key, String field);
+//	Object hmGet(String key, String field);
+//
+//	void hmSet(String key, String value, Object object);
+//
+//	Long incrHmKeyFieldByOne(String key, String field);
+//
+//	Map<Object, Object> hmGetAll(String key) throws InterruptedException;
 
-	void hmSet(String key, String value, Object object);
+	public double incrZetByOne(String key, String value);
 
-	Long incrHmKeyFieldByOne(String key, String field);
+	public double zsetIncrBy(String key, String value, int score);
 
-	Map<Object, Object> hmGetAll(String key) throws InterruptedException;
+	public Set<String> zsetRankBy(String key, long start, long end);
+
+	public Set<ZSetOperations.TypedTuple<String>> zetGetAll(String key);
 
 }

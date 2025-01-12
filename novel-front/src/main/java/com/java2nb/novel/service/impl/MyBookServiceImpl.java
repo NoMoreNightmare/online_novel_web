@@ -364,7 +364,8 @@ public class MyBookServiceImpl implements MyBookService {
     @Override
     public Result<?> addVisitCount(Long bookId) {
 //        boolean res = bookMapper.addVisitCountByOne(bookId);
-        Long totalCount = cacheService.incrHmKeyFieldByOne(CacheKey.BOOK_ADD_VISIT_COUNT, String.valueOf(bookId));
+        double totalCount = cacheService.incrZetByOne(CacheKey.BOOK_ADD_VISIT_COUNT, String.valueOf(bookId));
+
         if(totalCount > 0){
             return Result.ok();
         }else{

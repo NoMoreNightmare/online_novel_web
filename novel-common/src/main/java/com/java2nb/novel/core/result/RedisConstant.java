@@ -8,4 +8,6 @@ public class RedisConstant {
     public static final Long BOOK_MAX_TTL = 1200L;
 
     public static final Long BOOK_CONTENT_MAX_TTL = 900L;
+    public static final long FIRST_RANK = 0;
+    public static final long LAST_RANK = 49;
 }

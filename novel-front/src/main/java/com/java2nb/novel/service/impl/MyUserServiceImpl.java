@@ -23,6 +23,7 @@ import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -56,6 +57,7 @@ public class MyUserServiceImpl implements MyUserService {
     private UserFeedbackMapper userFeedbackMapper;
 
 
+    @Transactional
     @Override
     public Result<?> register(User user, String velCode, String ip) {
         String actualVelCode = cacheService.get(MyRandomVerificationCodeUtil.VERIFICATION_CODE + ":" + ip);
@@ -165,6 +167,7 @@ public class MyUserServiceImpl implements MyUserService {
 
     }
 
+    @Transactional
     @Override
     public Result<?> addToBookShelf(Long bookId, long preContentId, Long userId) {
         if(!(Boolean)queryIsInShelf(bookId, userId).getData()){
@@ -211,11 +214,13 @@ public class MyUserServiceImpl implements MyUserService {
         return count != 0;
     }
 
+    @Transactional
     @Override
     public void addReadHistory(Long bookId, Long userId, Long preContentId) {
         userReadHistoryMapper.insertNewHistory(userId, bookId, preContentId);
     }
 
+    @Transactional
     @Override
     public void updateReadHistory(Long bookId, Long userId, Long preContentId) {
         userReadHistoryMapper.updateBookHistory(userId, bookId, preContentId);
@@ -281,26 +286,31 @@ public class MyUserServiceImpl implements MyUserService {
         return Result.ok(pageBean);
     }
 
+    @Transactional
     @Override
     public void updateUserSex(Long userId, byte userSex) {
         userMapper.updateUserSex(userId, userSex);
     }
 
+    @Transactional
     @Override
     public int updatePassword(Long userId, String oldPassword, String newPassword) {
         newPassword = BCrypt.hashpw(newPassword);
         return userMapper.updatePassword(userId, newPassword);
     }
 
+    @Transactional
     @Override
     public int updateNickName(Long userId, String nickName) {
         return userMapper.updateNickName(userId, nickName);
     }
 
+    @Transactional
     @Override
     public void updateUserPhoto(Long userId, String userPhoto) {
         userMapper.updateUserPhoto(userId, userPhoto);
     }
+
 
     @Override
     public String queryUserPhoto(Long userId) {

@@ -7,10 +7,12 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,26 +60,40 @@ public class RedisServiceImpl implements CacheService {
 
     }
 
-    @Override
-    public Object hmGet(String key, String field) {
-        return redisTemplate.opsForHash().get(key, field);
+//    @Override
+//    public Object hmGet(String key, String field) {
+//        return redisTemplate.opsForHash().get(key, field);
+//    }
+
+//    @Override
+//    public void hmSet(String key, String field, Object value) {
+//        redisTemplate.opsForHash().put(key, field, value);
+//    }
+//
+//    @Override
+//    public Long incrHmKeyFieldByOne(String key, String field){
+//        return redisTemplate.opsForHash().increment(key, field, 1);
+//    }
+
+//    @Override
+//    public Map<Object, Object> hmGetAll(String key) {
+//        return (Map<Object, Object>) redisTemplate.opsForHash().entries(key);
+//    }
+
+    public double incrZetByOne(String key, String value){
+        return zsetIncrBy(key, value, 1);
     }
 
-
-
-    @Override
-    public void hmSet(String key, String field, Object value) {
-        redisTemplate.opsForHash().put(key, field, value);
+    public double zsetIncrBy(String key, String value, int score){
+        return redisTemplate.opsForZSet().incrementScore(key, value, score);
     }
 
-    @Override
-    public Long incrHmKeyFieldByOne(String key, String field){
-        return redisTemplate.opsForHash().increment(key, field, 1);
+    public Set<String> zsetRankBy(String key, long start, long end){
+        return redisTemplate.opsForZSet().reverseRange(key, start, end);
     }
 
-    @Override
-    public Map<Object, Object> hmGetAll(String key) {
-        return (Map<Object, Object>) redisTemplate.opsForHash().entries(key);
+    public Set<ZSetOperations.TypedTuple<String>> zetGetAll(String key){
+        return redisTemplate.opsForZSet().rangeByScoreWithScores(key, 0, -1);
     }
 
 

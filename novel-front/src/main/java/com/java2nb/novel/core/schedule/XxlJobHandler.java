@@ -1,9 +1,11 @@
 package com.java2nb.novel.core.schedule;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.RabbitMQConstant;
+import com.java2nb.novel.core.result.RedisConstant;
 import com.java2nb.novel.core.utils.MQManager;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.mapper.BookMapper;
@@ -24,13 +26,16 @@ import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
+import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
 @Component
 @Slf4j
@@ -48,14 +53,18 @@ public class XxlJobHandler {
 
     @XxlJob("visitCountHandler")
     public ReturnT<String> visitCountHandler(String param) throws Exception {
-        Map<Object, Object> map = cacheService.hmGetAll(CacheKey.BOOK_ADD_VISIT_COUNT);
+        Set<ZSetOperations.TypedTuple<String>> set = cacheService.zetGetAll(CacheKey.BOOK_ADD_VISIT_COUNT);
+
+        //缓存这10分钟里最热门的book的信息
+        Set<String> hotBooks = cacheService.zsetRankBy(CacheKey.BOOK_ADD_VISIT_COUNT, RedisConstant.FIRST_RANK, RedisConstant.LAST_RANK);
+
         cacheService.del(CacheKey.BOOK_ADD_VISIT_COUNT);
-        if(map == null || map.isEmpty()) {
+        if(set == null || set.isEmpty()) {
             return ReturnT.SUCCESS;
         }
-        for (Map.Entry<Object, Object> entry : map.entrySet()) {
-            long bookId = (Long) entry.getKey();
-            long currVisitCount = (Long) entry.getValue();
+        for (ZSetOperations.TypedTuple<String> tuple : set) {
+            long bookId = Long.parseLong(tuple.getValue());
+            long currVisitCount = tuple.getScore().longValue();
             UpdateStatementProvider updateVisitCount = update(book)
                     .set(visitCount)
                     .equalToConstant(visitCount.name() + " + " + currVisitCount)
@@ -65,6 +74,36 @@ public class XxlJobHandler {
 
             bookMapper.update(updateVisitCount);
             mqManager.sendBookMessage(bookId, RabbitMQConstant.RABBITMQ_BOOK_UPDATE_BINDING_KEY);
+        }
+
+        for (String hotBook : hotBooks) {
+            Long bookId = Long.parseLong(hotBook);
+            //查询是否缓存了这本书
+            boolean contains = cacheService.contains(String.valueOf(bookId));
+            if (contains) {
+                //是，更新expire时间为20分钟
+                cacheService.expire(String.valueOf(bookId), RedisConstant.BOOK_MAX_TTL);
+            }else{
+                //否，查询数据库并设置expire为20分钟
+                SelectStatementProvider select = select(id, bookName, catId, catName, picUrl, authorName, bookStatus, visitCount, wordCount, bookDesc, lastIndexId, lastIndexUpdateTime, lastIndexName)
+                        .from(book)
+                        .where(id, isEqualTo(bookId))
+                        .build()
+                        .render(RenderingStrategy.MYBATIS3);
+
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Book book = bookMapper.selectOne(select).get();
+                try {
+                    String bookJson = objectMapper.writeValueAsString(book);
+                    cacheService.set(String.valueOf(bookId), bookJson, RedisConstant.BOOK_MAX_TTL);
+                } catch (JsonProcessingException e) {
+                    return ReturnT.FAIL;
+                }
+            }
+
+
+
         }
 
         return ReturnT.SUCCESS;

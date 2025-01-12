@@ -1,6 +1,8 @@
 package com.java2nb.novel.service.impl;
 
+import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.entity.Book;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,9 +15,12 @@ import static com.java2nb.novel.core.result.CaffieineConstant.*;
  */
 @Service
 public class BookCacheServiceImpl {
+    @Autowired
+    private CacheService cacheService;
+
     @Cacheable(cacheNames = INDEX_KEY, key = "#key", unless = "#result == null")
     public String getIndexByKey(String key) {
-        return null;
+        return cacheService.get(key);
     }
 
     @CachePut(cacheNames = INDEX_KEY, key = "#key")
@@ -35,7 +40,7 @@ public class BookCacheServiceImpl {
 
     @Cacheable(cacheNames = BOOK_CONTENT, key = "#key", unless = "#result == null")
     public String getBookContentByKey(String key) {
-        return null;
+        return cacheService.get(key);
     }
 
     @CachePut(cacheNames = BOOK_CONTENT, key = "#key")
