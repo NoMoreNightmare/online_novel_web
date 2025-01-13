@@ -85,6 +85,7 @@ public class RedisServiceImpl implements CacheService {
     }
 
     public double zsetIncrBy(String key, String value, int score){
+
         return redisTemplate.opsForZSet().incrementScore(key, value, score);
     }
 
@@ -146,10 +147,10 @@ public class RedisServiceImpl implements CacheService {
         String strSequenceId = stringRedisTemplate.opsForValue().get(completeKey);
         if(strSequenceId != null) {
             currentSequenceId = Long.parseLong(strSequenceId) + 1;
-            stringRedisTemplate.opsForValue().set(completeKey, String.valueOf(currentSequenceId));
+            set(completeKey, String.valueOf(currentSequenceId), 10);
         }else{
             currentSequenceId = 0;
-            stringRedisTemplate.opsForValue().set(completeKey, String.valueOf(currentSequenceId));
+            set(completeKey, String.valueOf(currentSequenceId), 10);
         }
 
         long fullId = (id | timestamp | machineId | currentSequenceId);

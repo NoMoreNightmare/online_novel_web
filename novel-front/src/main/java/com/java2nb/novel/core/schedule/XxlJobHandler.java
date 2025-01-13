@@ -7,10 +7,13 @@ import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.RabbitMQConstant;
 import com.java2nb.novel.core.result.RedisConstant;
 import com.java2nb.novel.core.utils.MQManager;
+
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.mapper.BookMapper;
 import com.java2nb.novel.mapper.FrontBookMapper;
 import com.java2nb.novel.service.MyAuthorService;
+//import com.java2nb.novel.service.impl.BookContentHtmlService;
+//import com.java2nb.novel.core.utils.SFTPFileUploadUtil;
 import com.java2nb.novel.vo.BookDoc;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -50,6 +53,10 @@ public class XxlJobHandler {
     private FrontBookMapper frontBookMapper;
     @Autowired
     private RestHighLevelClient client;
+//    @Autowired
+//    private BookContentHtmlService bookContentHtmlService;
+//    @Autowired
+//    private SFTPFileUploadUtil sftpFileUploadUtil;
 
     @XxlJob("visitCountHandler")
     public ReturnT<String> visitCountHandler(String param) throws Exception {
@@ -135,5 +142,12 @@ public class XxlJobHandler {
 
         return ReturnT.SUCCESS;
     }
+
+//    @XxlJob("writeToNginxHandler")
+//    public ReturnT<String> writeToNginxHandler(String param) throws Exception {
+//        bookContentHtmlService.createHTML();
+//        sftpFileUploadUtil.uploadFile();
+//        return ReturnT.SUCCESS;
+//    }
 }
 

@@ -43,7 +43,7 @@ public class NonRestIndexController {
 //            //精品推荐
 //        List<BookDescriptionVO> classicBooks = bookService.queryClassicBooks(26, 6);
 //加载小说首页小说基本信息线程
-        Map<Byte, List<BookSettingVO>> map= bookService.listBookSettingVO();
+        Map<Byte, List<BookSettingVO>> map = bookService.listBookSettingVO();
         //加载首页新闻线程
         model.addAttribute("bookMap", map);
 

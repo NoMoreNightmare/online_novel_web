@@ -6,6 +6,7 @@ import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.*;
 import com.java2nb.novel.mapper.FrontUserMapper;
+import com.jcraft.jsch.JSchException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,8 @@ public class MyFileController {
     private FrontUserMapper userMapper;
     @Value("${pic.save.path}")
     private String picSavePath;
+//    @Autowired
+//    private SFTPFileUploadUtil sftpFileUploadUtil;
 
     @GetMapping("getVerify")
     @SneakyThrows
@@ -68,6 +71,13 @@ public class MyFileController {
         return Result.ok(filepath);
 
     }
+
+//    @ResponseBody
+//    @GetMapping("testFileUpload")
+//    public String upload(HttpServletRequest request, HttpServletResponse response) throws JSchException {
+//        boolean b = sftpFileUploadUtil.uploadFile("index/index.html", "index.html");
+//        return String.valueOf(b);
+//    }
 
     private static String getToken(HttpServletRequest request) {
         String token = CookieUtil.getCookie(request, "Authorization");

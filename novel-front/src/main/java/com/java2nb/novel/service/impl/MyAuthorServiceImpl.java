@@ -100,6 +100,14 @@ public class MyAuthorServiceImpl implements MyAuthorService {
         //删除index
         bookIndexMapper.deleteIndex(indexId);
 
+        //所有indexNum大于这个被删除的index的indexNum的indexNum - 1
+        UpdateStatementProvider updateIndexNum = update(BookIndexDynamicSqlSupport.bookIndex)
+                .set(BookIndexDynamicSqlSupport.indexNum)
+                .equalToConstant(BookIndexDynamicSqlSupport.indexNum.name() + " - " + 1)
+                .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+        bookIndexMapper.update(updateIndexNum);
         //TODO 这里也可以多线程优化
         //删除对应的content
         DeleteStatementProvider delete = deleteFrom(BookContentDynamicSqlSupport.bookContent)

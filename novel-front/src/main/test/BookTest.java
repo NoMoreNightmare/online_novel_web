@@ -2,11 +2,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java2nb.novel.FrontNovelApplication;
 import com.java2nb.novel.core.result.ElasticSearchConstant;
+
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.MyBookService;
+//import com.java2nb.novel.service.impl.BookContentHtmlService;
+//import com.java2nb.novel.core.utils.SFTPFileUploadUtil;
 import com.java2nb.novel.vo.BookDoc;
+import com.jcraft.jsch.JSchException;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -52,6 +56,11 @@ public class BookTest {
 //    @Autowired
 //    private BookIndexMapper bookIndexMapper;
     private RestHighLevelClient client;
+
+//    @Autowired
+//    private BookContentHtmlService bookContentHtmlService;
+//    @Autowired
+//    private SFTPFileUploadUtil sftpFileUploadUtil;
 
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -154,4 +163,12 @@ public class BookTest {
 
         }
     }
+
+
+
+//    @Test
+//    public void testWriteToNginx() throws IOException, JSchException {
+//        bookContentHtmlService.createHTML();
+//        sftpFileUploadUtil.uploadFile();
+//    }
 }

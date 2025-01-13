@@ -75,12 +75,6 @@ public class NonRestBookController {
         //书的章节目录内容
         BookContent bookContent = bookService.queryBookContent(bookId, bookIndexId);
 
-        model.addAttribute("book", book);
-        model.addAttribute("bookIndex", bookIndex);
-        model.addAttribute("nextBookIndexId", nextChapterId);
-        model.addAttribute("preBookIndexId", preChapterId);
-        model.addAttribute("bookContent", bookContent);
-
         //判断是否需要购买
         boolean needBuy = false;
         //1、判断当前章节是否是vip章节
@@ -113,7 +107,11 @@ public class NonRestBookController {
             }
         }
 
-
+        model.addAttribute("book", book);
+        model.addAttribute("bookIndex", bookIndex);
+        model.addAttribute("nextBookIndexId", nextChapterId);
+        model.addAttribute("preBookIndexId", preChapterId);
+        model.addAttribute("bookContent", bookContent);
         model.addAttribute("needBuy", needBuy);
         return ThreadLocalUtil.getTemplateDir() + "book/book_content";
     }
