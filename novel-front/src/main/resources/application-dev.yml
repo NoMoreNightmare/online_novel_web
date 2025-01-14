@@ -15,7 +15,7 @@ pic:
   save:
     type: 2 #图片保存方式, 1不保存，使用爬取的网络图片 ，2保存在自己的存储介质
     storage: local #存储介质，local：本地，OSS：阿里云对象存储
-    path: C:\Users\10253\Desktop\novel-plus  #图片保存路径
+    path: picture  #图片保存路径
 
 
 
@@ -46,4 +46,11 @@ nginx:
     password: 84225128Xz!,.
 
 
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    bucketName: javaweb-web-tlias
+    region: cn-beijing
+    accessKeyId: LTAI5tSH4PwyqskiACqiTjU2
+    accessKeySecret: YXpX3DgyqiqClc0d9XwaleE5x5VCEY
 

@@ -11,20 +11,19 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-@ConfigurationProperties(prefix="novel.file")
+@ConfigurationProperties(prefix="aliyun.oss")
 public class OssProperties{
 
     private String endpoint;
 
-    private String keyId;
+    private String accessKeyId;
 
-    private String keySecret;
+    private String accessKeySecret;
 
-    private String fileHost;
+    private String region;
 
     private String bucketName;
 
-    private String webUrl;
 
 
 }

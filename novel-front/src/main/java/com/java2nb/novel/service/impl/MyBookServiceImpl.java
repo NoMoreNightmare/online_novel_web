@@ -76,7 +76,7 @@ public class MyBookServiceImpl implements MyBookService {
     private BookIndexMapper bookIndexMapper;
     @Autowired
     private MyBookService myBookService;
-    @Resource(name = "db")
+    @Resource(name = "db1")
     private BookContentService bookContentService;
     @Autowired
     private BookContentMapper bookContentMapper;

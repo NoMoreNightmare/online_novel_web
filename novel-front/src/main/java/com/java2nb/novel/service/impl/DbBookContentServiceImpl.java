@@ -14,7 +14,8 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
 
-@Service(value = "db")
+//@Service(value = "db")
+@Service(value = "db1")
 @RequiredArgsConstructor
 public class DbBookContentServiceImpl implements BookContentService {
 

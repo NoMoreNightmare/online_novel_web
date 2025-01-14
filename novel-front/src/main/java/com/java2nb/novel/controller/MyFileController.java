@@ -1,12 +1,11 @@
 package com.java2nb.novel.controller;
 
-import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.*;
 import com.java2nb.novel.mapper.FrontUserMapper;
-import com.jcraft.jsch.JSchException;
+import com.java2nb.novel.service.MyFileService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +18,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-import java.util.UUID;
 
 import static com.java2nb.novel.core.utils.MyRandomVerificationCodeUtil.VERIFICATION_CODE;
 
@@ -44,6 +40,8 @@ public class MyFileController {
     private String picSavePath;
 //    @Autowired
 //    private SFTPFileUploadUtil sftpFileUploadUtil;
+    @Resource(name = "oss")
+    private MyFileService myFileService;
 
     @GetMapping("getVerify")
     @SneakyThrows
@@ -66,7 +64,12 @@ public class MyFileController {
             return Result.customError(LoginAndRegisterConstant.NO_LOGIN_MSG, LoginAndRegisterConstant.NO_LOGIN);
         }
 
-        String filepath = PictureUtil.createFile(file, picSavePath);
+        String filepath = null;
+        try {
+            filepath = myFileService.savePic(file, picSavePath);
+        } catch (IOException e) {
+            return Result.customError("文件上传失败", 2050);
+        }
 
         return Result.ok(filepath);
 

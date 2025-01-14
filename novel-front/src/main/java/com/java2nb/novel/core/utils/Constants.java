@@ -17,6 +17,11 @@ public class Constants {
     public static final String LOCAL_PIC_PREFIX = "/localPic/";
 
     /**
+     * 远程存储介质前缀
+     */
+    public static final String REMOTE_PIC_SUFFIX = "picture/";
+
+    /**
      * 用户客户端标识保存key
      * */
     public static final String USER_CLIENT_MARK_KEY = "userClientMarkKey";
