@@ -41,7 +41,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.yaml.snakeyaml.error.MarkedYAMLException;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,114 +57,116 @@ public class BookTest {
     private FrontBookMapper frontBookMapper;
 //    @Autowired
 //    private BookIndexMapper bookIndexMapper;
-    private RestHighLevelClient client;
+//    private RestHighLevelClient client;
 
 //    @Autowired
 //    private BookContentHtmlService bookContentHtmlService;
 //    @Autowired
 //    private SFTPFileUploadUtil sftpFileUploadUtil;
 
+//    @Autowired
+//    RabbitTemplate rabbitTemplate;
     @Autowired
-    RabbitTemplate rabbitTemplate;
+    private BookIndexMapper bookIndexMapper;
 
-    @BeforeEach
-    void setup(){
-        client = new RestHighLevelClient(RestClient.builder(
-                HttpHost.create("http://192.168.200.142:9200")
-        ));
-    }
+//    @BeforeEach
+//    void setup(){
+//        client = new RestHighLevelClient(RestClient.builder(
+//                HttpHost.create("http://192.168.200.142:9200")
+//        ));
+//    }
 
-    @AfterEach
-    void tearDown() throws IOException {
-        this.client.close();
-    }
+//    @AfterEach
+//    void tearDown() throws IOException {
+//        this.client.close();
+//    }
 
 //    @Test
 //    public void recoverData(){
 //
 //    }
 
-    /**
-     * 创建book索引库
-     * @throws IOException
-     */
-    @Test
-    public void createBookIndex() throws IOException {
-        CreateIndexRequest request = new CreateIndexRequest("book");
+//    /**
+//     * 创建book索引库
+//     * @throws IOException
+//     */
+//    @Test
+//    public void createBookIndex() throws IOException {
+//        CreateIndexRequest request = new CreateIndexRequest("book");
+//
+//        String a = ElasticSearchConstant.INDEX_TEMPLATE;
+//
+//        request.source(ElasticSearchConstant.INDEX_TEMPLATE, XContentType.JSON);
+//
+//        client.indices().create(request, RequestOptions.DEFAULT);
+//    }
+//
+//    @Test
+//    public void deleteBookIndex() throws IOException {
+//        DeleteIndexRequest request = new DeleteIndexRequest("book");
+//
+//        client.indices().delete(request, RequestOptions.DEFAULT);
+//    }
 
-        String a = ElasticSearchConstant.INDEX_TEMPLATE;
+//    @Test
+//    public void initializeBookIndex() throws IOException {
+//        SelectStatementProvider selectAll = select(id, catId, catName, bookName, lastIndexId, lastIndexName, authorName, wordCount, updateTime, visitCount, bookStatus, bookDesc)
+//                .from(book)
+//                .build()
+//                .render(RenderingStrategy.MYBATIS3);
+//
+//        List<Book> books = frontBookMapper.selectMany(selectAll);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        BulkRequest request = new BulkRequest();
+//
+//        for (Book book : books) {
+//            BookDoc bookDoc = new BookDoc(book);
+//            request.add(new IndexRequest("book")
+//                    .id(bookDoc.getId().toString())
+//                    .source(objectMapper.writeValueAsString(bookDoc), XContentType.JSON));
+//        }
+//
+//        client.bulk(request, RequestOptions.DEFAULT);
+//    }
 
-        request.source(ElasticSearchConstant.INDEX_TEMPLATE, XContentType.JSON);
+//    @Test
+//    public void testSendToFanoutExchange(){
+//        String exchange = "novel.book.fanout";
+//        String message = "test";
+//
+//        rabbitTemplate.convertAndSend(exchange,"", message);
+//    }
 
-        client.indices().create(request, RequestOptions.DEFAULT);
-    }
-
-    @Test
-    public void deleteBookIndex() throws IOException {
-        DeleteIndexRequest request = new DeleteIndexRequest("book");
-
-        client.indices().delete(request, RequestOptions.DEFAULT);
-    }
-
-    @Test
-    public void initializeBookIndex() throws IOException {
-        SelectStatementProvider selectAll = select(id, catId, catName, bookName, lastIndexId, lastIndexName, authorName, wordCount, updateTime, visitCount, bookStatus, bookDesc)
-                .from(book)
-                .build()
-                .render(RenderingStrategy.MYBATIS3);
-
-        List<Book> books = frontBookMapper.selectMany(selectAll);
-        ObjectMapper objectMapper = new ObjectMapper();
-        BulkRequest request = new BulkRequest();
-
-        for (Book book : books) {
-            BookDoc bookDoc = new BookDoc(book);
-            request.add(new IndexRequest("book")
-                    .id(bookDoc.getId().toString())
-                    .source(objectMapper.writeValueAsString(bookDoc), XContentType.JSON));
-        }
-
-        client.bulk(request, RequestOptions.DEFAULT);
-    }
-
-    @Test
-    public void testSendToFanoutExchange(){
-        String exchange = "novel.book.fanout";
-        String message = "test";
-
-        rabbitTemplate.convertAndSend(exchange,"", message);
-    }
-
-    @Test
-    public void testRecoverDataFromES() throws IOException {
-        SearchRequest request = new SearchRequest("book");
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(QueryBuilders.matchAllQuery());
-        request.source(sourceBuilder);
-
-        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        SearchHit[] hits = response.getHits().getHits();
-        for (SearchHit hit : hits) {
-            String sourceAsString = hit.getSourceAsString();
-            BookDoc bookDoc = objectMapper.readValue(sourceAsString, new TypeReference<BookDoc>() {});
-            UpdateStatementProvider update = update(book)
-                    .set(lastIndexId)
-                    .equalTo(bookDoc.getLastIndexId())
-                    .set(lastIndexName)
-                    .equalTo(bookDoc.getLastIndexName())
-                    .set(lastIndexUpdateTime)
-                    .equalTo(bookDoc.getUpdateTime())
-                    .where(id, isEqualTo(bookDoc.getId()))
-                    .build()
-                    .render(RenderingStrategy.MYBATIS3);
-
-            frontBookMapper.update(update);
-
-
-        }
-    }
+//    @Test
+//    public void testRecoverDataFromES() throws IOException {
+//        SearchRequest request = new SearchRequest("book");
+//        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+//        sourceBuilder.query(QueryBuilders.matchAllQuery());
+//        request.source(sourceBuilder);
+//
+//        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+//
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        SearchHit[] hits = response.getHits().getHits();
+//        for (SearchHit hit : hits) {
+//            String sourceAsString = hit.getSourceAsString();
+//            BookDoc bookDoc = objectMapper.readValue(sourceAsString, new TypeReference<BookDoc>() {});
+//            UpdateStatementProvider update = update(book)
+//                    .set(lastIndexId)
+//                    .equalTo(bookDoc.getLastIndexId())
+//                    .set(lastIndexName)
+//                    .equalTo(bookDoc.getLastIndexName())
+//                    .set(lastIndexUpdateTime)
+//                    .equalTo(bookDoc.getUpdateTime())
+//                    .where(id, isEqualTo(bookDoc.getId()))
+//                    .build()
+//                    .render(RenderingStrategy.MYBATIS3);
+//
+//            frontBookMapper.update(update);
+//
+//
+//        }
+//    }
 
 
 
@@ -171,4 +175,36 @@ public class BookTest {
 //        bookContentHtmlService.createHTML();
 //        sftpFileUploadUtil.uploadFile();
 //    }
+
+    /**
+     * 生成用于jmeter并发测试的csv配置文件
+     */
+    @Test
+    public void generateBookContentCSV() throws IOException {
+        SelectStatementProvider render = select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.bookId)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .limit(2000L)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        List<BookIndex> list = bookIndexMapper.selectMany(render);
+        File file = new File("bookcontent.csv");
+        if(!file.exists()){
+            file.createNewFile();
+        }
+
+        PrintWriter writer = new PrintWriter(file);
+        writer.write("bookId, bookIndexId");
+        for (BookIndex bookIndex : list) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(String.valueOf(bookIndex.getBookId().longValue()));
+            sb.append(",");
+            sb.append(String.valueOf(bookIndex.getId().longValue()));
+            sb.append("\n");
+            writer.write(sb.toString());
+        }
+
+        writer.flush();
+        writer.close();
+    }
 }

@@ -60,6 +60,8 @@ public interface MyBookService {
 
     void queryUsingElasticSearch(PageBean<BookDoc> pageBean, SearchDataVO searchData);
 
+    Result<?> generateCSV();
+
 //    Result<?> recoverFromES() throws IOException;
 
 //    void recover();

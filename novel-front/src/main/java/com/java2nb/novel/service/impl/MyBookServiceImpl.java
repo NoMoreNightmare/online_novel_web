@@ -30,6 +30,7 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortOrder;
+import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
@@ -39,7 +40,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -699,6 +703,46 @@ public class MyBookServiceImpl implements MyBookService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Result<?> generateCSV() {
+        SelectStatementProvider render = SqlBuilder.select(BookIndexDynamicSqlSupport.id, BookIndexDynamicSqlSupport.bookId)
+                .from(BookIndexDynamicSqlSupport.bookIndex)
+                .limit(2000L)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        List<BookIndex> list = bookIndexMapper.selectMany(render);
+        File file = new File("bookcontent.csv");
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(file);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        writer.write("bookId, bookIndexId\n");
+        for (BookIndex bookIndex : list) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(String.valueOf(bookIndex.getBookId().longValue()));
+            sb.append(",");
+            sb.append(String.valueOf(bookIndex.getId().longValue()));
+            sb.append("\n");
+            writer.write(sb.toString());
+        }
+
+        writer.flush();
+        writer.close();
+
+        return Result.ok();
     }
 
 //    @Override

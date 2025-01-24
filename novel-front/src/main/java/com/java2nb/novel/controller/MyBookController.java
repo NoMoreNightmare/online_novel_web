@@ -128,6 +128,11 @@ public class MyBookController {
         }
     }
 
+    @GetMapping("generateCSV")
+    public Result<?> generateCSV() {
+        return myBookService.generateCSV();
+    }
+
 
 //    @GetMapping("recover")
 //    public Result<?> recoverFromES() {
