@@ -36,6 +36,9 @@ import org.mybatis.dynamic.sql.render.RenderingStrategy;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +56,7 @@ import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.id;
 import static com.java2nb.novel.mapper.BookSettingDynamicSqlSupport.bookSetting;
+import static java.lang.Thread.sleep;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
@@ -62,6 +66,8 @@ import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 public class MyBookServiceImpl implements MyBookService {
     @Autowired
     FrontBookMapper bookMapper;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     FrontBookSettingMapper bookSettingMapper;
@@ -90,6 +96,7 @@ public class MyBookServiceImpl implements MyBookService {
     private MQManager mqManager;
 
     Random random = new Random();
+    private FrontBookMapper frontBookMapper;
 
     @Override
     public Result<?> listClickRank() {
@@ -801,6 +808,43 @@ public class MyBookServiceImpl implements MyBookService {
     private Date getTimeTwoMonthAgo(){
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(2);
         return Date.from(oneMonthAgo.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    @Override
+    public void transferData(){
+        for(int i = 0; i <= 9; i++){
+
+
+            int batchSize = 1000;
+            int offset = 0;
+
+            while(true){
+                String sql = "select * from book_content" + i + " limit " + batchSize + " offset " + offset;
+                List<BookContent> query = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(BookContent.class));
+                if(query.isEmpty()){
+                    break;
+                }
+                for (BookContent bookContent : query) {
+                    try{
+                        bookContentMapper.insert(bookContent);
+                    }catch (Exception e){
+                        continue;
+                    }
+
+                }
+                offset += batchSize;
+                try {
+                    sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
+
+
+        }
+
     }
 
 //    @Override

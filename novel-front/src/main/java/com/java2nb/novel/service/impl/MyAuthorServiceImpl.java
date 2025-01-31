@@ -440,5 +440,10 @@ public class MyAuthorServiceImpl implements MyAuthorService {
 
     }
 
+    @Override
+    public void addBookContentByMe(BookContentVO bookContentVO, long l, byte b) {
+        bookContentMapper.insert(bookContentVO);
+    }
+
 
 }

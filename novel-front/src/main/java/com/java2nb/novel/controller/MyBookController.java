@@ -6,10 +6,13 @@ import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.CookieUtil;
 import com.java2nb.novel.core.utils.JwtTokenUtil;
+import com.java2nb.novel.service.MyAuthorService;
 import com.java2nb.novel.service.MyBookService;
+import com.java2nb.novel.vo.BookContentVO;
 import com.java2nb.novel.vo.BookDoc;
 import com.java2nb.novel.vo.BookVO;
 import com.java2nb.novel.vo.SearchDataVO;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +22,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
@@ -32,6 +36,8 @@ public class MyBookController {
     private JwtTokenUtil jwtTokenUtil;
     @Value("${elasticsearch.enable}")
     private boolean elasticsearchEnable;
+    @Autowired
+    private MyAuthorService myAuthorService;
 
     @GetMapping("listClickRank")
     public Result<?> listClickRank() {
@@ -85,6 +91,7 @@ public class MyBookController {
     }
 
     @GetMapping("searchByPage")
+    @SneakyThrows
     public Result<?> searchByPage(SearchDataVO searchData) {
         if(elasticsearchEnable && searchData.getKeyword() != null && !searchData.getKeyword().isEmpty()) {
             PageBean<BookDoc> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
@@ -92,8 +99,15 @@ public class MyBookController {
             return Result.ok(pageBean);
         }else{
             PageBean<BookVO> pageBean = new PageBean<>(searchData.getCurr(), searchData.getLimit());
-            List<BookVO> list = myBookService.queryWithCondition(searchData);
-            int total = myBookService.queryWithConditionTotal(searchData);
+
+            List<BookVO> list = CompletableFuture.supplyAsync(() -> myBookService.queryWithCondition(searchData)).get();
+
+//            List<BookVO> list = myBookService.queryWithCondition(searchData);
+
+            int total = CompletableFuture.supplyAsync(() -> myBookService.queryWithConditionTotal(searchData)).get();
+
+//            int total = myBookService.queryWithConditionTotal(searchData);
+
             pageBean.setTotal(total);
             pageBean.setList(list);
             return Result.ok(pageBean);
@@ -131,6 +145,22 @@ public class MyBookController {
     @GetMapping("generateCSV")
     public Result<?> generateCSV() {
         return myBookService.generateCSV();
+    }
+
+    @GetMapping("transferData")
+    public Result<?> transferData() {
+        myBookService.transferData();
+        return Result.ok();
+    }
+
+    @GetMapping("insertTest")
+    public Result<?> insertTest() {
+        BookContentVO bookContentVO = new BookContentVO();
+        bookContentVO.setIndexId(0L);
+        bookContentVO.setIndexName("test");
+        bookContentVO.setContent("hello world");
+        myAuthorService.addBookContentByMe(bookContentVO, 0L, (byte)0);
+        return Result.ok();
     }
 
 

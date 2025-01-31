@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 @Slf4j
@@ -38,17 +39,21 @@ public class NonRestBookController {
     @SneakyThrows
     @RequestMapping("{id}.html")
     public String bookDetails(@PathVariable("id") long id, Model model) {
-        //查询book的完整信息
-        Book book = bookService.queryBook(id);
+        Book book = CompletableFuture.supplyAsync(() -> {
+            //查询book的完整信息
+            return bookService.queryBook(id);
+        }).get();
 
-        //查询这个book的评论信息bookCommentPageBean
-        PageBean<BookCommentVO> bookComment = bookService.queryBookComment(id, 1, 10);
+        PageBean<BookCommentVO> bookComment = CompletableFuture.supplyAsync(() -> {
+            //查询这个book的评论信息bookCommentPageBean
+            return bookService.queryBookComment(id, 1, 10);
+        }).get();
 
         //查询这个book的同类书籍信息recBooks
-        List<Book> recBooks = bookService.queryRecommendedBooks(id);
+        List<Book> recBooks = CompletableFuture.supplyAsync(() -> bookService.queryRecommendedBooks(id)).get();
 
         //查询这个book的首章节信息
-        Long chapterId = bookService.queryBookLastChapter(id);
+        Long chapterId = CompletableFuture.supplyAsync(() -> bookService.queryBookLastChapter(id)).get();
 
         model.addAttribute("book", book);
         model.addAttribute("bookCommentPageBean", bookComment);
@@ -59,21 +64,31 @@ public class NonRestBookController {
 
     }
 
+    @SneakyThrows
     @GetMapping("{bookId}/{bookIndexId}.html")
     public String bookContent(@PathVariable("bookId") long bookId, @PathVariable("bookIndexId") long bookIndexId, Model model,
                               HttpServletRequest request) {
         //书的相关信息
-        Book book = bookService.queryBook(bookId);
+        Book book = CompletableFuture.supplyAsync(() -> bookService.queryBook(bookId)).get();
         //书的目录信息
-        BookIndex bookIndex = bookService.queryAboutCurrentIndex(bookId, bookIndexId);
+        CompletableFuture<BookIndex> bookIndexCompletableFuture = CompletableFuture.supplyAsync(() -> bookService.queryAboutCurrentIndex(bookId, bookIndexId));
+        CompletableFuture<Long> nextChapterIdCompletableFuture = bookIndexCompletableFuture.thenApply(bookIndex -> bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1));
+        CompletableFuture<Long> preChapterIdCompletableFuture = bookIndexCompletableFuture.thenApply(bookIndex -> bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1));
+
+
+        BookIndex bookIndex = bookIndexCompletableFuture.get();
         if(bookIndex == null) {
             throw new ChapterNotExistException();
         }
 
-        Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
-        Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
+//        Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
+//        Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
+
+        Long nextChapterId = nextChapterIdCompletableFuture.get();
+        Long preChapterId = preChapterIdCompletableFuture.get();
+
         //书的章节目录内容
-        BookContent bookContent = bookService.queryBookContent(bookId, bookIndexId);
+        BookContent bookContent = CompletableFuture.supplyAsync(() -> bookService.queryBookContent(bookId, bookIndexId)).get();
 
         //判断是否需要购买
         boolean needBuy = false;
@@ -117,9 +132,12 @@ public class NonRestBookController {
     }
 
     @GetMapping("indexList-{bookId}.html")
+    @SneakyThrows
     public String indexList(@PathVariable("bookId") long bookId, Model model) {
-        Book book = bookService.queryBook(bookId);
-        List<BookIndex> bookIndex = bookService.queryAllIndex(bookId);
+        Book book = CompletableFuture.supplyAsync(() -> bookService.queryBook(bookId)).get();
+//        Book book = bookService.queryBook(bookId);
+        List<BookIndex> bookIndex = CompletableFuture.supplyAsync(() -> bookService.queryAllIndex(bookId)).get();
+//        List<BookIndex> bookIndex = bookService.queryAllIndex(bookId);
         model.addAttribute("book", book);
         model.addAttribute("bookIndexCount", bookIndex.size());
         model.addAttribute("bookIndexList", bookIndex);

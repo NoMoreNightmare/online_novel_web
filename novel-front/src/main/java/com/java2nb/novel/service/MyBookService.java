@@ -62,6 +62,8 @@ public interface MyBookService {
 
     Result<?> generateCSV();
 
+    void transferData();
+
 //    Result<?> recoverFromES() throws IOException;
 
 //    void recover();

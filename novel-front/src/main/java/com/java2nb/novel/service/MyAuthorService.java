@@ -29,4 +29,6 @@ public interface MyAuthorService {
     Result<?> checkPenName(String penName);
 
     Result<?> addBookContent(BookContentVO bookContent, Long bookId, Byte isVip);
+
+    void addBookContentByMe(BookContentVO bookContentVO, long l, byte b);
 }
