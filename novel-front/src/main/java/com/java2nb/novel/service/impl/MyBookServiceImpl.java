@@ -6,6 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java2nb.novel.controller.page.PageBean;
 import com.java2nb.novel.core.cache.CacheKey;
 import com.java2nb.novel.core.cache.CacheService;
+import com.java2nb.novel.core.exception.DeSerializeException;
+import com.java2nb.novel.core.exception.FileCreatedException;
+import com.java2nb.novel.core.exception.ResponseHandleException;
+import com.java2nb.novel.core.exception.SerializeException;
 import com.java2nb.novel.core.result.BookConstant;
 import com.java2nb.novel.core.result.RabbitMQConstant;
 import com.java2nb.novel.core.result.RedisConstant;
@@ -111,7 +115,8 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});
             } catch (JsonProcessingException e) {
-                return Result.customError("反序列化错误", 2021);
+                throw new DeSerializeException(e);
+//                return Result.customError("反序列化错误", 2021);
             }
             return Result.ok(books);
         }
@@ -145,14 +150,14 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 jsonStr = objectMapper.writeValueAsString(books);
             } catch (JsonProcessingException e) {
-                return Result.customError("序列化错误", 2020);
+                throw new SerializeException(e);
             }
             cacheService.set(key, jsonStr, RedisConstant.INDEX_MAX_TTL);
         }else{
             try {
                 books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});
             } catch (JsonProcessingException e) {
-                return Result.customError("反序列化错误", 2021);
+                throw new DeSerializeException(e);
             }
         }
 
@@ -191,7 +196,7 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 booksJson = objectMapper.writeValueAsString(books);
             } catch (JsonProcessingException e) {
-                return Result.customError("序列化错误", 2020);
+                throw new SerializeException(e);
             }
             cacheService.set(key, booksJson, RedisConstant.INDEX_MAX_TTL);
         }else{
@@ -199,7 +204,7 @@ public class MyBookServiceImpl implements MyBookService {
                 books = objectMapper.readValue(booksJson, new TypeReference<List<Book>>() {
                 });
             } catch (JsonProcessingException e) {
-                return Result.customError("反序列化错误", 2021);
+                throw new DeSerializeException(e);
             }
         }
 
@@ -239,7 +244,7 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 booksJson = objectMapper.writeValueAsString(books);
             } catch (JsonProcessingException e) {
-                return Result.customError("序列化错误", 2020);
+                throw new SerializeException(e);
             }
 
             cacheService.set(key, booksJson, RedisConstant.INDEX_MAX_TTL);
@@ -248,7 +253,7 @@ public class MyBookServiceImpl implements MyBookService {
                 books = objectMapper.readValue(booksJson, new TypeReference<List<Book>>() {
                 });
             } catch (JsonProcessingException e) {
-                return Result.customError("反序列化错误", 2021);
+                throw new DeSerializeException(e);
             }
 
         }
@@ -266,7 +271,7 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 return objectMapper.readValue(bookJson, new TypeReference<Book>() {});
             } catch (JsonProcessingException e) {
-                return null;
+                throw new DeSerializeException(e);
             }
         }
         SelectStatementProvider select = select(id, bookName, catId, catName, picUrl, authorName, bookStatus, visitCount, wordCount, bookDesc, lastIndexId, lastIndexUpdateTime, lastIndexName)
@@ -282,7 +287,7 @@ public class MyBookServiceImpl implements MyBookService {
             bookJson = objectMapper.writeValueAsString(book);
             bookCacheService.putBookByKey(String.valueOf(bookId), bookJson);
         } catch (JsonProcessingException e) {
-            return null;
+            throw new SerializeException(e);
         }
         return book;
     }
@@ -454,7 +459,7 @@ public class MyBookServiceImpl implements MyBookService {
                 return objectMapper.readValue(bookContentJson, new TypeReference<BookContent>() {
                 });
             } catch (JsonProcessingException e) {
-                return null;
+                throw new DeSerializeException(e);
             }
         }
 
@@ -470,7 +475,7 @@ public class MyBookServiceImpl implements MyBookService {
             bookContentJson = objectMapper.writeValueAsString(bookContent.get());
             bookCacheService.putBookContentByKey(String.valueOf(bookIndexId), bookContentJson);
         } catch (JsonProcessingException e) {
-            return null;
+            throw new SerializeException(e);
         }
         return bookContent.orElse(null);
 
@@ -622,14 +627,14 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 jsonStr = objectMapper.writeValueAsString(books);
             } catch (JsonProcessingException e) {
-                return Result.customError("序列化错误", 2020);
+                throw new SerializeException(e);
             }
             cacheService.set(key, jsonStr, RedisConstant.INDEX_MAX_TTL);
         }else{
             try {
                 books = objectMapper.readValue(bookJson, new TypeReference<List<Book>>() {});
             } catch (JsonProcessingException e) {
-                return Result.customError("反序列化错误", 2021);
+                throw new DeSerializeException(e);
             }
         }
 
@@ -708,7 +713,7 @@ public class MyBookServiceImpl implements MyBookService {
             //解析响应
             handleResponse(response, pageBean);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ResponseHandleException(e);
         }
     }
 
@@ -726,7 +731,7 @@ public class MyBookServiceImpl implements MyBookService {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new FileCreatedException(e);
             }
         }
 
@@ -797,7 +802,7 @@ public class MyBookServiceImpl implements MyBookService {
                 BookDoc bookDoc = objectMapper.readValue(json, new TypeReference<BookDoc>() {});
                 list.add(bookDoc);
             } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                throw new DeSerializeException(e);
             }
         }
 

@@ -1,6 +1,7 @@
 package com.java2nb.novel.controller;
 
 import com.java2nb.novel.core.cache.CacheService;
+import com.java2nb.novel.core.exception.ResponseWriteException;
 import com.java2nb.novel.core.result.LoginAndRegisterConstant;
 import com.java2nb.novel.core.result.Result;
 import com.java2nb.novel.core.utils.*;
@@ -51,7 +52,12 @@ public class MyFileController {
         response.setDateHeader("Expires", 0);
 
         MyRandomVerificationCodeUtil randomValidateCodeUtil = new MyRandomVerificationCodeUtil();
-        String code = randomValidateCodeUtil.genRandCodeImage(response.getOutputStream());
+        String code = null;
+        try {
+            code = randomValidateCodeUtil.genRandCodeImage(response.getOutputStream());
+        } catch (IOException e) {
+            throw new ResponseWriteException(e);
+        }
 
         cacheService.set(VERIFICATION_CODE + ":" + IpUtil.getRealIp(request), code, 30);
     }

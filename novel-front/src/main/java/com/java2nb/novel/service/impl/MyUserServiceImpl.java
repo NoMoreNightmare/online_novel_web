@@ -76,7 +76,7 @@ public class MyUserServiceImpl implements MyUserService {
         try {
             user.setId(idGenerator.generateId());
         } catch (InterruptedException e) {
-            throw new IdGenerateException();
+            throw new IdGenerateException(e);
         }
         Date currentTime = new Date();
         user.setCreateTime(currentTime);

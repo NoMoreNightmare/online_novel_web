@@ -32,7 +32,7 @@ public class PictureUtil {
             try {
                 file.transferTo(saveFile);
             } catch (IOException e) {
-                throw new FileCreatedException();
+                throw new FileCreatedException(e);
             }
             return directory + "/" + filename;
 
