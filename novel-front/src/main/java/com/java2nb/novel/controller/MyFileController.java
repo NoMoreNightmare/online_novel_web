@@ -41,7 +41,7 @@ public class MyFileController {
     private String picSavePath;
 //    @Autowired
 //    private SFTPFileUploadUtil sftpFileUploadUtil;
-    @Resource(name = "oss")
+    @Resource(name = "db")
     private MyFileService myFileService;
 
     @GetMapping("getVerify")

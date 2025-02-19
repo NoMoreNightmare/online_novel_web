@@ -28,7 +28,7 @@ public class CrawlThreadMonitor {
 
     private final CrawlService crawlService;
 
-    @Scheduled(fixedRate = 1000 * 60 * 5)
+//    @Scheduled(fixedRate = 1000 * 60 * 5)
     public void monitor() {
 
         //查询需要监控的正在运行的爬虫源

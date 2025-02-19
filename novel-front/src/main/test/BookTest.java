@@ -207,4 +207,34 @@ public class BookTest {
         writer.flush();
         writer.close();
     }
+
+    @Test
+    public void generateBookIdCSV() throws IOException {
+        SelectStatementProvider render = select(id)
+                .from(book)
+                .limit(2000L)
+                .build()
+                .render(RenderingStrategy.MYBATIS3);
+
+        List<Book> list = frontBookMapper.selectMany(render);
+        File file = new File("bookid.csv");
+        if(!file.exists()){
+            file.createNewFile();
+        }else{
+            file.delete();
+            file.createNewFile();
+        }
+
+        PrintWriter writer = new PrintWriter(file);
+        writer.write("bookId\n");
+        for (Book bookIndex : list) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(bookIndex.getId().longValue());
+            sb.append("\n");
+            writer.write(sb.toString());
+        }
+
+        writer.flush();
+        writer.close();
+    }
 }

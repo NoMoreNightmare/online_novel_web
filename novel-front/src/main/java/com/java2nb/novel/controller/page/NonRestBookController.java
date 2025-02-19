@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 @Slf4j
@@ -35,6 +36,8 @@ public class NonRestBookController {
     private JwtTokenUtil jwtTokenUtil;
     @Resource
     private MyUserService myUserService;
+    @Resource
+    private ThreadPoolExecutor threadPoolExecutor;
 
     @SneakyThrows
     @RequestMapping("{id}.html")
@@ -42,18 +45,18 @@ public class NonRestBookController {
         Book book = CompletableFuture.supplyAsync(() -> {
             //查询book的完整信息
             return bookService.queryBook(id);
-        }).get();
+        }, threadPoolExecutor).get();
 
         PageBean<BookCommentVO> bookComment = CompletableFuture.supplyAsync(() -> {
             //查询这个book的评论信息bookCommentPageBean
             return bookService.queryBookComment(id, 1, 10);
-        }).get();
+        }, threadPoolExecutor).get();
 
         //查询这个book的同类书籍信息recBooks
-        List<Book> recBooks = CompletableFuture.supplyAsync(() -> bookService.queryRecommendedBooks(id)).get();
+        List<Book> recBooks = CompletableFuture.supplyAsync(() -> bookService.queryRecommendedBooks(id), threadPoolExecutor).get();
 
         //查询这个book的首章节信息
-        Long chapterId = CompletableFuture.supplyAsync(() -> bookService.queryBookLastChapter(id)).get();
+        Long chapterId = CompletableFuture.supplyAsync(() -> bookService.queryBookLastChapter(id), threadPoolExecutor).get();
 
         model.addAttribute("book", book);
         model.addAttribute("bookCommentPageBean", bookComment);
@@ -69,9 +72,9 @@ public class NonRestBookController {
     public String bookContent(@PathVariable("bookId") long bookId, @PathVariable("bookIndexId") long bookIndexId, Model model,
                               HttpServletRequest request) {
         //书的相关信息
-        Book book = CompletableFuture.supplyAsync(() -> bookService.queryBook(bookId)).get();
+        Book book = CompletableFuture.supplyAsync(() -> bookService.queryBook(bookId), threadPoolExecutor).get();
         //书的目录信息
-        CompletableFuture<BookIndex> bookIndexCompletableFuture = CompletableFuture.supplyAsync(() -> bookService.queryAboutCurrentIndex(bookId, bookIndexId));
+        CompletableFuture<BookIndex> bookIndexCompletableFuture = CompletableFuture.supplyAsync(() -> bookService.queryAboutCurrentIndex(bookId, bookIndexId), threadPoolExecutor);
         CompletableFuture<Long> nextChapterIdCompletableFuture = bookIndexCompletableFuture.thenApply(bookIndex -> bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1));
         CompletableFuture<Long> preChapterIdCompletableFuture = bookIndexCompletableFuture.thenApply(bookIndex -> bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1));
 
@@ -81,14 +84,18 @@ public class NonRestBookController {
             throw new ChapterNotExistException();
         }
 
-//        Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
-//        Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
-
         Long nextChapterId = nextChapterIdCompletableFuture.get();
         Long preChapterId = preChapterIdCompletableFuture.get();
 
         //书的章节目录内容
-        BookContent bookContent = CompletableFuture.supplyAsync(() -> bookService.queryBookContent(bookId, bookIndexId)).get();
+        BookContent bookContent = CompletableFuture.supplyAsync(() -> bookService.queryBookContent(bookId, bookIndexId), threadPoolExecutor).get();
+
+
+//        Book book = bookService.queryBook(bookId);
+//        BookIndex bookIndex = bookService.queryAboutCurrentIndex(bookId, bookIndexId);
+//        Long nextChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() + 1);
+//        Long preChapterId = bookService.queryBookIndexIdByIndexNum(bookId, bookIndex.getIndexNum() - 1);
+//        BookContent bookContent = bookService.queryBookContent(bookId, bookIndexId);
 
         //判断是否需要购买
         boolean needBuy = false;
@@ -134,9 +141,9 @@ public class NonRestBookController {
     @GetMapping("indexList-{bookId}.html")
     @SneakyThrows
     public String indexList(@PathVariable("bookId") long bookId, Model model) {
-        Book book = CompletableFuture.supplyAsync(() -> bookService.queryBook(bookId)).get();
+        Book book = CompletableFuture.supplyAsync(() -> bookService.queryBook(bookId), threadPoolExecutor).get();
 //        Book book = bookService.queryBook(bookId);
-        List<BookIndex> bookIndex = CompletableFuture.supplyAsync(() -> bookService.queryAllIndex(bookId)).get();
+        List<BookIndex> bookIndex = CompletableFuture.supplyAsync(() -> bookService.queryAllIndex(bookId), threadPoolExecutor).get();
 //        List<BookIndex> bookIndex = bookService.queryAllIndex(bookId);
         model.addAttribute("book", book);
         model.addAttribute("bookIndexCount", bookIndex.size());

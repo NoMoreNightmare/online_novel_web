@@ -65,8 +65,14 @@
             <artifactId>sharding-jdbc-spring-namespace</artifactId>
             <version>${sharding.jdbc.version}</version>
         </dependency>
-
 <!--        <dependency>-->
+<!--            <groupId>io.shardingsphere</groupId>-->
+<!--            <artifactId>sharding-transaction-spring-boot-starter</artifactId>-->
+<!--            <version>3.1.0</version>-->
+<!--        </dependency>-->
+
+
+        <!--        <dependency>-->
 <!--            <groupId>org.apache.shardingsphere</groupId>-->
 <!--            <artifactId>shardingsphere-jdbc-core-spring-boot-starter</artifactId>-->
 <!--            <version>5.1.1</version>-->
@@ -144,11 +150,18 @@
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson-spring-boot-starter</artifactId>
-            <version>3.23.5</version>
+            <version>3.14.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.redisson</groupId>
+                    <artifactId>redisson-spring-data-23</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-data-21</artifactId>
+            <version>3.14.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

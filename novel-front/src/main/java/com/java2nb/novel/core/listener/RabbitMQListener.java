@@ -38,6 +38,9 @@ import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 
+/**
+ * @author 10253
+ */
 @Component
 @Slf4j
 public class RabbitMQListener {

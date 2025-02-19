@@ -9,8 +9,9 @@ import com.java2nb.novel.core.result.RedisConstant;
 import com.java2nb.novel.core.utils.MQManager;
 
 import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.mapper.BookMapper;
-import com.java2nb.novel.mapper.FrontBookMapper;
+import com.java2nb.novel.entity.BookContent;
+import com.java2nb.novel.entity.BookIndex;
+import com.java2nb.novel.mapper.*;
 import com.java2nb.novel.service.MyAuthorService;
 //import com.java2nb.novel.service.impl.BookContentHtmlService;
 //import com.java2nb.novel.core.utils.SFTPFileUploadUtil;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.java2nb.novel.mapper.BookDynamicSqlSupport.*;
@@ -53,6 +55,10 @@ public class XxlJobHandler {
     private FrontBookMapper frontBookMapper;
     @Autowired
     private RestHighLevelClient client;
+    @Autowired
+    private BookIndexMapper bookIndexMapper;
+    @Autowired
+    private BookContentMapper bookContentMapper;
 //    @Autowired
 //    private BookContentHtmlService bookContentHtmlService;
 //    @Autowired
@@ -62,7 +68,7 @@ public class XxlJobHandler {
     public ReturnT<String> visitCountHandler(String param) throws Exception {
         Set<ZSetOperations.TypedTuple<String>> set = cacheService.zetGetAll(CacheKey.BOOK_ADD_VISIT_COUNT);
 
-        //缓存这10分钟里最热门的book的信息
+        //缓存这10分钟里最热门的50本book的信息
         Set<String> hotBooks = cacheService.zsetRankBy(CacheKey.BOOK_ADD_VISIT_COUNT, RedisConstant.FIRST_RANK, RedisConstant.LAST_RANK);
 
         cacheService.del(CacheKey.BOOK_ADD_VISIT_COUNT);
@@ -103,9 +109,37 @@ public class XxlJobHandler {
                 Book book = bookMapper.selectOne(select).get();
                 try {
                     String bookJson = objectMapper.writeValueAsString(book);
-                    cacheService.set(String.valueOf(bookId), bookJson, RedisConstant.BOOK_MAX_TTL);
+                    cacheService.set(RedisConstant.BOOK_KEY + String.valueOf(bookId), bookJson, RedisConstant.BOOK_MAX_TTL);
                 } catch (JsonProcessingException e) {
                     return ReturnT.FAIL;
+                }
+
+
+                //查询这本书的最近更新的4个章节，并缓存
+                SelectStatementProvider last4BookIndex = select(BookIndexDynamicSqlSupport.id)
+                        .from(BookIndexDynamicSqlSupport.bookIndex)
+                        .where(id, isEqualTo(bookId))
+                        .orderBy(BookIndexDynamicSqlSupport.createTime.descending())
+                        .limit(4)
+                        .build()
+                        .render(RenderingStrategy.MYBATIS3);
+
+                List<BookIndex> indices = bookIndexMapper.selectMany(last4BookIndex);
+                for (BookIndex index : indices) {
+
+                    SelectStatementProvider lastBookContent = select(BookContentDynamicSqlSupport.id, BookContentDynamicSqlSupport.indexId, BookContentDynamicSqlSupport.content)
+                            .from(BookContentDynamicSqlSupport.bookContent)
+                            .where(BookContentDynamicSqlSupport.indexId, isEqualTo(index.getId()))
+                            .build()
+                            .render(RenderingStrategy.MYBATIS3);
+                    Optional<BookContent> bookContent = bookContentMapper.selectOne(lastBookContent);
+                    BookContent content = bookContent.get();
+                    try {
+                        String bookContentJson = objectMapper.writeValueAsString(content);
+                        cacheService.set(RedisConstant.BOOK_INDEX_KEY + String.valueOf(index.getId()), bookContentJson, RedisConstant.BOOK_CONTENT_MAX_TTL);
+                    } catch (JsonProcessingException e) {
+                        return ReturnT.FAIL;
+                    }
                 }
             }
 

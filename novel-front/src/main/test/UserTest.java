@@ -1,6 +1,9 @@
 import cn.hutool.crypto.digest.BCrypt;
+import org.bouncycastle.util.Arrays;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Collections;
 
 @SpringBootTest
 public class UserTest {
@@ -14,5 +17,7 @@ public class UserTest {
         String originPass = new String("123456");
 
         System.out.println(BCrypt.checkpw(originPass, a));
+
     }
+
 }

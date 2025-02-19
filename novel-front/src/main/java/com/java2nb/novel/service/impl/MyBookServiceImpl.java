@@ -265,7 +265,7 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Override
     public Book queryBook(long bookId) {
-        String bookJson = bookCacheService.getBookByKey(String.valueOf(bookId));
+        String bookJson = bookCacheService.getBookByKey(RedisConstant.BOOK_KEY + String.valueOf(bookId));
         ObjectMapper objectMapper = new ObjectMapper();
         if(bookJson != null && !bookJson.isEmpty()) {
             try {
@@ -285,7 +285,7 @@ public class MyBookServiceImpl implements MyBookService {
         Book book = bookMapper.selectOne(select).get();
         try {
             bookJson = objectMapper.writeValueAsString(book);
-            bookCacheService.putBookByKey(String.valueOf(bookId), bookJson);
+            bookCacheService.putBookByKey(RedisConstant.BOOK_KEY + String.valueOf(bookId), bookJson);
         } catch (JsonProcessingException e) {
             throw new SerializeException(e);
         }
@@ -452,7 +452,7 @@ public class MyBookServiceImpl implements MyBookService {
 
     @Override
     public BookContent queryBookContent(long bookId, long bookIndexId) {
-        String bookContentJson = bookCacheService.getBookContentByKey(String.valueOf(bookIndexId));
+        String bookContentJson = bookCacheService.getBookContentByKey(RedisConstant.BOOK_INDEX_KEY + String.valueOf(bookIndexId));
         ObjectMapper objectMapper = new ObjectMapper();
         if(bookContentJson != null && !bookContentJson.isEmpty()){
             try {
@@ -472,8 +472,13 @@ public class MyBookServiceImpl implements MyBookService {
 
         Optional<BookContent> bookContent = bookContentMapper.selectOne(select);
         try {
-            bookContentJson = objectMapper.writeValueAsString(bookContent.get());
-            bookCacheService.putBookContentByKey(String.valueOf(bookIndexId), bookContentJson);
+            if(bookContent.isPresent()){
+                bookContentJson = objectMapper.writeValueAsString(bookContent.get());
+                bookCacheService.putBookContentByKey(RedisConstant.BOOK_INDEX_KEY + String.valueOf(bookIndexId), bookContentJson);
+            }else{
+                throw new RuntimeException();
+            }
+
         } catch (JsonProcessingException e) {
             throw new SerializeException(e);
         }

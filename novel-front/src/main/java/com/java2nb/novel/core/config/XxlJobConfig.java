@@ -15,12 +15,6 @@ public class XxlJobConfig {
 
     @Value("${xxl.job.executor.appname}")
     private String appname;
-//
-//    @Value("${xxl.job.executor.address}")
-//    private String executorAddress;
-//
-//    @Value("${xxl.job.executor.port}")
-//    private int port;
 
     @Value("${xxl.job.accessToken}")
     private String accessToken;

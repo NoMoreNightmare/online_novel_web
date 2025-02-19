@@ -35,7 +35,7 @@ public class CrawlPicTransSchedule {
     /**
      * 10分钟转一次
      */
-    @Scheduled(fixedRate = 1000 * 60 * 10)
+//    @Scheduled(fixedRate = 1000 * 60 * 10)
     @SneakyThrows
     public void trans() {
 
